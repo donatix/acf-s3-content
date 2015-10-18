@@ -1,0 +1,12 @@
+{
+    "name": "helmut/acf-s3-content",
+    "authors": [
+        {
+            "name": "Johan Björk",
+            "email": "johanimon@gmail.com"
+        }
+    ],
+    "require": {
+        "aws/aws-sdk-php": "~2.8"
+    }
+}

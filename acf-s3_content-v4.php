@@ -1,6 +1,6 @@
 <?php
 
-class acf_field_FIELD_NAME extends acf_field {
+class acf_field_s3_content extends acf_field {
 	
 	// vars
 	var $settings, // will hold info such as dir / path
@@ -19,8 +19,8 @@ class acf_field_FIELD_NAME extends acf_field {
 	function __construct()
 	{
 		// vars
-		$this->name = 'FIELD_NAME';
-		$this->label = __('FIELD_LABEL');
+		$this->name = 's3_content';
+		$this->label = __('S3 Content');
 		$this->category = __("Basic",'acf'); // Basic, Content, Choice, etc
 		$this->defaults = array(
 			// add default here to merge into your field. 
@@ -75,18 +75,22 @@ class acf_field_FIELD_NAME extends acf_field {
 		<p class="description"><?php _e("Thumbnail is advised",'acf'); ?></p>
 	</td>
 	<td>
+
 		<?php
-		
+
+		/*
 		do_action('acf/create_field', array(
 			'type'		=>	'radio',
 			'name'		=>	'fields['.$key.'][preview_size]',
-			'value'		=>	$field['preview_size'],
+			'value'		=> false,
+			//'value'		=>	$field['preview_size'],
 			'layout'	=>	'horizontal',
 			'choices'	=>	array(
 				'thumbnail' => __('Thumbnail'),
 				'something_else' => __('Something Else'),
 			)
 		));
+		*/
 		
 		?>
 	</td>
@@ -119,11 +123,53 @@ class acf_field_FIELD_NAME extends acf_field {
 		
 		
 		// create Field HTML
+
+		$values = (array) $field['value'];
+
+		$files = array_map(function($name) {
+			return ['name' => $name, 'uploaded' => true];
+		}, $values);
+
+		// reset array keys
+		$files = array_values($files);
+
 		?>
-		<div>
-			
-		</div>
+
+		<script type="application/javascript">
+			window.ACF_S3_FILES = <?php echo json_encode($files); ?>
+		</script>
+
+		<div class="acf-s3-files"></div>
+
+		<br />
+
+		<strong>Add file</strong>
+		<br />
+		<input type="file" id="acf-s3-file-select" />
+
+
+		<script type="text/template" id="acf-s3-file-template">
+			<% for (var i = 0; i < files.length; i++) { %>
+
+			<div class="acf-s3-file">
+				<input type="hidden"
+					   name="<?php echo $field['name']; ?>[<%= i %>]"
+					   value="<%= files[i].name %>" />
+
+				<%= files[i].name %>
+
+				<% if (files[i].uploaded) { %>
+				<a class="acf-s3-delete" style="float: right;">Delete</a>
+				<% } else { %>
+				<a class="acf-s3-upload" style="float: right;">Upload</a>
+				<% } %>
+			</div>
+
+			<% } %>
+		</script>
+
 		<?php
+
 	}
 	
 	
@@ -142,21 +188,23 @@ class acf_field_FIELD_NAME extends acf_field {
 	function input_admin_enqueue_scripts()
 	{
 		// Note: This function can be removed if not used
-		
-		
+
 		// register ACF scripts
-		wp_register_script( 'acf-input-FIELD_NAME', $this->settings['dir'] . 'js/input.js', array('acf-input'), $this->settings['version'] );
-		wp_register_style( 'acf-input-FIELD_NAME', $this->settings['dir'] . 'css/input.css', array('acf-input'), $this->settings['version'] ); 
-		
-		
+		wp_register_script( 'promise-queue', $this->settings['dir'] . 'js/PromiseQueue.js', array('jquery'), $this->settings['version'] );
+		wp_register_script( 's3-proxy', $this->settings['dir'] . 'js/S3Proxy.js', array('jquery'), $this->settings['version'] );
+		wp_register_script( 's3-file-uploader', $this->settings['dir'] . 'js/S3FileUploader.js', array('jquery', 's3-proxy', 'promise-queue'), $this->settings['version'] );
+		wp_register_script( 'acf-s3_content', $this->settings['dir'] . 'js/input.js', array('acf-input', 's3-file-uploader', 'underscore'), $this->settings['version'] );
+
+		wp_register_style( 'acf-s3_content', $this->settings['dir'] . 'css/input.css' );
+
 		// scripts
 		wp_enqueue_script(array(
-			'acf-input-FIELD_NAME',	
+			'acf-s3_content',
 		));
 
 		// styles
 		wp_enqueue_style(array(
-			'acf-input-FIELD_NAME',	
+			'acf-s3_content',
 		));
 		
 		
@@ -258,6 +306,7 @@ class acf_field_FIELD_NAME extends acf_field {
 	
 	function update_value( $value, $post_id, $field )
 	{
+		//var_dump($valye)
 		// Note: This function can be removed if not used
 		return $value;
 	}
@@ -372,6 +421,4 @@ class acf_field_FIELD_NAME extends acf_field {
 
 
 // create field
-new acf_field_FIELD_NAME();
-
-?>
+new acf_field_s3_content();
