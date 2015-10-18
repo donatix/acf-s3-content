@@ -156,11 +156,11 @@ class acf_field_s3_content extends acf_field {
 					   name="<?php echo $field['name']; ?>[<%= i %>]"
 					   value="<%= files[i].name %>" />
 
-				<%= files[i].name %>
-
 				<% if (files[i].uploaded) { %>
+				<a href=""><%= files[i].name %></a>
 				<a class="acf-s3-delete" style="float: right;">Delete</a>
 				<% } else { %>
+				<%= files[i].name %>
 				<a class="acf-s3-upload" style="float: right;">Upload</a>
 				<% } %>
 			</div>
