@@ -1,15 +1,15 @@
 (function($){
 
-	var config = {
+	var config = $.extend({
 		getKey: function(file) {
 			return file.name;
 		}
-	};
+	}, window.acfs3 || {});
 
-	window.acfs3 = window.acfs3 || config;
+	window.acfs3 = config;
 
-	function updateTemplate($el, template, files) {
-		return $el.html(template({ files: files }));
+	function updateTemplate($target, template, data) {
+		return $target.html(template(data));
 	}
 	
 	function initialize_field( $el ) {
@@ -22,7 +22,7 @@
 			files = [];
 		}
 
-		updateTemplate($templateEl, template, files);
+		updateTemplate($templateEl, template, {files: files});
 
 		var proxy = new S3Proxy(ajaxurl + '?action=acf-s3_content_action');
 		var uploader = new S3FileUploader(proxy);
@@ -43,23 +43,57 @@
 			console.log('Success - Key: ' + arg.Key + '; Part: ' + arg.PartNumber + '; ETag: ' + arg.ETag);
 		}
 
-		var queue = [];
-
 		$el.on('change', 'input[type=file]', function(event) {
 			var $this = $(event.target);
 			var file = $this[0].files[0];
-			queue.push(file);
+			//queue.push(file);
 
 			files.push({
 				name: config.getKey(file),
-				uploaded: false
+				uploaded: false,
+				file: file
 			});
 
-			updateTemplate($templateEl, template, files);
+			updateTemplate($templateEl, template, {files: files});
 		});
 
-		console.log(_);
+		$el.on('click', '.acf-s3-upload', function(event) {
+			var $this = $(event.target);
+			$this.html('Uploading...');
+			$this.prop('disabled', true);
 
+			var id = $this.closest('.acf-s3-file').data('id');
+			id = parseInt(id);
+
+			var item = files[id];
+			var file = item.file;
+
+			if ( file ) {
+				uploader.upload(file.name, file).then(function(res) {
+					item.uploaded = true;
+					updateTemplate($templateEl, template, {files: files});
+				});
+			}
+		});
+
+		$el.on('click', '.acf-s3-delete', function(event) {
+			event.preventDefault(); // this is a link without target, so disable it
+
+			var $this = $(event.target);
+
+			$this.html('Deleting...');
+			$this.prop('disabled', true);
+
+			var id = $this.closest('.acf-s3-file').data('id');
+			id = parseInt(id);
+
+			var item = files[id];
+
+			proxy.deleteObject(item.name).then(function(res) {
+				files.splice(id, 1);
+				updateTemplate($templateEl, template, {files: files});
+			});
+		});
 
 	}
 	

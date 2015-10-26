@@ -52,6 +52,9 @@ S3Proxy.prototype.abortMultipartUpload = function(key, uploadId) {
 };
 
 /**
+ * @param {string} key
+ * @param {string} uploadId
+ * @param {Array} parts
  * @returns {jQuery.Deferred}
  */
 S3Proxy.prototype.completeMultipartUpload = function(key, uploadId, parts) {
@@ -68,6 +71,9 @@ S3Proxy.prototype.completeMultipartUpload = function(key, uploadId, parts) {
 };
 
 /**
+ * @param {string} key
+ * @param {string} uploadId
+ * @param {number} partNumber
  * @returns {jQuery.Deferred}
  */
 S3Proxy.prototype.signUploadPart = function(key, uploadId, partNumber) {
@@ -79,6 +85,21 @@ S3Proxy.prototype.signUploadPart = function(key, uploadId, partNumber) {
             Key: key,
             UploadId: uploadId,
             PartNumber: partNumber
+        }
+    });
+};
+
+/**
+ * @param {string} key
+ * @returns {jQuery.Deferred}
+ */
+S3Proxy.prototype.deleteObject = function(key) {
+    return jQuery.ajax({
+        url: this.proxyUrl + '&command=deleteObject',
+        method: 'post',
+        dataType: 'json',
+        data: {
+            Key: key
         }
     });
 };

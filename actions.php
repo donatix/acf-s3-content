@@ -61,6 +61,15 @@ return [
         return [
             'Url' => $command->createPresignedUrl('+10 minutes')
         ];
+    },
+
+    'deleteObject' => function(S3Client $client, array $config) {
+        $model = $client->deleteObject([
+            'Bucket' => $config['bucket'],
+            'Key' => $_POST['Key']
+        ]);
+
+        return $model->toArray();
     }
 
 ];

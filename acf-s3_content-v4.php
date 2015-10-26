@@ -5,7 +5,12 @@ class acf_field_s3_content extends acf_field {
 	// vars
 	var $settings, // will hold info such as dir / path
 		$defaults; // will hold default field options
-		
+
+
+	/**
+	 * @var string
+	 */
+	private $bucket;
 		
 	/*
 	*  __construct
@@ -15,9 +20,15 @@ class acf_field_s3_content extends acf_field {
 	*  @since	3.6
 	*  @date	23/01/13
 	*/
-	
-	function __construct()
+
+	/**
+	 * @param string $bucket
+	 */
+	function __construct($bucket)
 	{
+
+		$this->bucket = $bucket;
+
 		// vars
 		$this->name = 's3_content';
 		$this->label = __('S3 Content');
@@ -124,7 +135,7 @@ class acf_field_s3_content extends acf_field {
 		
 		// create Field HTML
 
-		$values = (array) $field['value'];
+		$values = is_array($field['value']) ? $field['value'] : [];
 
 		$files = array_map(function($name) {
 			return ['name' => $name, 'uploaded' => true];
@@ -149,20 +160,36 @@ class acf_field_s3_content extends acf_field {
 
 
 		<script type="text/template" id="acf-s3-file-template">
+
+			<% if ( files.length === 0 ) { %>
+			<input type="hidden" name="<?php echo $field['name']; ?>" value="" />
+			<% } %>
+
 			<% for (var i = 0; i < files.length; i++) { %>
 
-			<div class="acf-s3-file">
+			<div class="acf-s3-file" data-id="<%= i %>">
 				<input type="hidden"
 					   name="<?php echo $field['name']; ?>[<%= i %>]"
 					   value="<%= files[i].name %>" />
 
 				<% if (files[i].uploaded) { %>
-				<a href=""><%= files[i].name %></a>
-				<a class="acf-s3-delete" style="float: right;">Delete</a>
+
+				<a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= files[i].name %>">
+					<%= files[i].name %>
+				</a>
+
 				<% } else { %>
+
 				<%= files[i].name %>
+
+				<% } %>
+
+				<% if ( !files[i].uploaded ) { %>
 				<a class="acf-s3-upload" style="float: right;">Upload</a>
 				<% } %>
+
+
+				<a class="acf-s3-delete" style="float: right;">Delete</a>
 			</div>
 
 			<% } %>
@@ -419,6 +446,7 @@ class acf_field_s3_content extends acf_field {
 	
 }
 
+$config = require __DIR__ . '/config.php';
 
 // create field
-new acf_field_s3_content();
+new acf_field_s3_content($config['bucket']);
