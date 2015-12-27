@@ -44,7 +44,6 @@
 		var uploader = new S3FileUploader(proxy);
 
 		proxy.listMultipartUploads().done(function(result) {
-			console.log(result);
 
 			if ( !result.Uploads ) {
 				return;
@@ -87,8 +86,9 @@
 			if ( file ) {
 				var completedParts = 0;
 				var totalParts = Math.ceil(file.size/uploader.partSize);
+				var name = config.getKey(file);
 
-				uploader.upload(file.name, file).then(function(res) {
+				uploader.upload(name, file).then(function(res) {
 					item.uploaded = true;
 					render({files: files});
 
