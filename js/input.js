@@ -43,6 +43,28 @@
 		var proxy = new S3Proxy(ajaxurl + '?action=acf-s3_content_action');
 		var uploader = new S3FileUploader(proxy);
 
+		// make sure all files are uploaded before we submit the form
+		jQuery('form[name=post]').on('submit', function(event) {
+
+			var filesAreUploaded = files.every(function(it) {
+				return it.uploaded;
+			});
+
+			if ( !filesAreUploaded && !confirm('Discard non-uploaded S3 media?') ) {
+				event.preventDefault();
+				event.stopPropagation();
+
+				return false;
+			}
+
+			// remove non-uploaded media
+			files = files.filter(function(it) {
+				return it.uploaded;
+			});
+
+			render({files: files});
+		});
+
 		proxy.listMultipartUploads().done(function(result) {
 
 			if ( !result.Uploads ) {
