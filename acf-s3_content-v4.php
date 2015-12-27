@@ -150,7 +150,10 @@ class acf_field_s3_content extends acf_field {
 			window.ACF_S3_FILES = <?php echo json_encode($files); ?>
 		</script>
 
-		<div class="acf-s3-files"></div>
+		<div class="acf-s3-files"
+			 data-post-id="<?php echo get_the_ID();?>">
+
+		</div>
 
 		<br />
 
@@ -168,29 +171,43 @@ class acf_field_s3_content extends acf_field {
 			<% for (var i = 0; i < files.length; i++) { %>
 
 			<div class="acf-s3-file" data-id="<%= i %>">
-				<input type="hidden"
-					   name="<?php echo $field['name']; ?>[<%= i %>]"
-					   value="<%= files[i].name %>" />
 
-				<% if (files[i].uploaded) { %>
+				<div class="progress<% if (files[i].uploaded) { %> done<% } %>"></div>
 
-				<a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= files[i].name %>"
-				   target="_blank">
-					<%= files[i].name %>
-				</a>
+				<div class="content">
 
-				<% } else { %>
+					<input type="hidden"
+						   name="<?php echo $field['name']; ?>[<%= i %>]"
+						   value="<%= files[i].name %>" />
 
-				<%= files[i].name %>
+					<div class="name">
 
-				<% } %>
+						<% if (files[i].uploaded) { %>
 
-				<% if ( !files[i].uploaded ) { %>
-				<a class="acf-s3-upload" style="float: right;">Upload</a>
-				<% } %>
+						<a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= files[i].name %>"
+						   target="_blank">
+							<%= files[i].name %>
+						</a>
 
+						<% } else { %>
 
-				<a class="acf-s3-delete" style="float: right;">Delete</a>
+						<%= files[i].name %>
+
+						<% } %>
+
+					</div>
+
+					<div class="actions">
+						<% if ( !files[i].uploaded ) { %>
+						<a class="acf-s3-upload" style="float: right;">Upload</a>
+						<% } %>
+
+						<a class="acf-s3-delete" style="float: right;">Delete</a>
+					</div>
+
+					<div class="clear"></div>
+
+				</div>
 			</div>
 
 			<% } %>

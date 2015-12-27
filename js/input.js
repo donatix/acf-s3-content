@@ -11,18 +11,34 @@
 	function updateTemplate($target, template, data) {
 		return $target.html(template(data));
 	}
+
+	function updateField(key, value, postId) {
+		jQuery.ajax({
+			method: 'post',
+			url: ajaxurl + '?action=acf-s3_update_field',
+			data: {
+				key: key,
+				value: value,
+				post_id: postId,
+			},
+		});
+	}
 	
 	function initialize_field( $el ) {
 
 		var $templateEl = $el.find('.acf-s3-files');
 		var template = _.template($('#acf-s3-file-template').text());
 		var files = window.ACF_S3_FILES;
+		var postId = parseInt($templateEl.data('post-id'), 10);
+		var fieldKey = $el.data('field_key');
 
 		if ( !$.isArray(files) ) {
 			files = [];
 		}
 
-		updateTemplate($templateEl, template, {files: files});
+		var render = updateTemplate.bind(null, $templateEl, template);
+
+		render({files: files});
 
 		var proxy = new S3Proxy(ajaxurl + '?action=acf-s3_content_action');
 		var uploader = new S3FileUploader(proxy);
@@ -46,7 +62,6 @@
 		$el.on('change', 'input[type=file]', function(event) {
 			var $this = $(event.target);
 			var file = $this[0].files[0];
-			//queue.push(file);
 
 			files.push({
 				name: config.getKey(file),
@@ -54,24 +69,36 @@
 				file: file
 			});
 
-			updateTemplate($templateEl, template, {files: files});
+			render({files: files});
 		});
 
 		$el.on('click', '.acf-s3-upload', function(event) {
 			var $this = $(event.target);
 			$this.html('Uploading...');
 			$this.prop('disabled', true);
+			var $file = $this.closest('.acf-s3-file');
 
-			var id = $this.closest('.acf-s3-file').data('id');
-			id = parseInt(id);
+			var id = $file.data('id');
+			id = parseInt(id, 10);
 
 			var item = files[id];
 			var file = item.file;
 
 			if ( file ) {
+				var completedParts = 0;
+				var totalParts = Math.ceil(file.size/uploader.partSize);
+
 				uploader.upload(file.name, file).then(function(res) {
 					item.uploaded = true;
-					updateTemplate($templateEl, template, {files: files});
+					render({files: files});
+
+					updateField(fieldKey, _.pluck(files, 'name'), postId);
+				}, null, function(progress) {
+					completedParts++;
+
+					$file.find('.progress').css({
+						width: Math.round(100*completedParts/totalParts) + '%',
+					});
 				});
 			}
 		});
@@ -79,19 +106,25 @@
 		$el.on('click', '.acf-s3-delete', function(event) {
 			event.preventDefault(); // this is a link without target, so disable it
 
+			if ( !confirm('Are you sure?') ) {
+				return;
+			}
+
 			var $this = $(event.target);
 
 			$this.html('Deleting...');
 			$this.prop('disabled', true);
 
 			var id = $this.closest('.acf-s3-file').data('id');
-			id = parseInt(id);
+			id = parseInt(id, 10);
 
 			var item = files[id];
 
 			proxy.deleteObject(item.name).then(function(res) {
 				files.splice(id, 1);
-				updateTemplate($templateEl, template, {files: files});
+				render({files: files});
+
+				updateField(fieldKey, _.pluck(files, 'name'), postId);
 			});
 		});
 
