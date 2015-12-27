@@ -238,7 +238,7 @@ class acf_field_s3_content extends acf_field {
 		wp_register_script( 'promise-queue', $this->settings['dir'] . 'js/PromiseQueue.js', array('jquery'), $this->settings['version'] );
 		wp_register_script( 's3-proxy', $this->settings['dir'] . 'js/S3Proxy.js', array('jquery'), $this->settings['version'] );
 		wp_register_script( 's3-file-uploader', $this->settings['dir'] . 'js/S3FileUploader.js', array('jquery', 's3-proxy', 'promise-queue'), $this->settings['version'] );
-		wp_register_script( 'acf-s3_content', $this->settings['dir'] . 'js/input.js', array('acf-input', 's3-file-uploader', 'underscore'), $this->settings['version'] );
+		wp_register_script( 'acf-s3_content', $this->settings['dir'] . 'js/input.js', array('acf-input', 's3-file-uploader', 'underscore'), $this->settings['version'], true );
 
 		wp_register_style( 'acf-s3_content', $this->settings['dir'] . 'css/input.css' );
 
