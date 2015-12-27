@@ -47,3 +47,15 @@ add_action('wp_ajax_acf-s3_content_action', function() {
 	die();
 
 });
+
+add_action('wp_ajax_acf-s3_update_field', function() {
+
+
+	$key = $_POST['key'];
+	$value = $_POST['value'];
+	$postId = $_POST['post_id'];
+
+	update_field($key, $value, $postId);
+
+	die();
+});
