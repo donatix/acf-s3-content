@@ -146,19 +146,14 @@ class acf_field_s3_content extends acf_field {
 
 		?>
 
-		<script type="application/javascript">
-			window.ACF_S3_FILES = <?php echo json_encode($files); ?>
-		</script>
-
 		<div class="acf-s3-files"
-			 data-post-id="<?php echo get_the_ID();?>">
+			 data-post-id="<?php echo get_the_ID();?>"
+			 data-files="<?php echo htmlspecialchars(json_encode($files), ENT_QUOTES); ?>">
 
 		</div>
 
 		<br />
 
-		<strong>Add file</strong>
-		<br />
 		<input type="file" id="acf-s3-file-select" />
 
 
@@ -464,7 +459,77 @@ class acf_field_s3_content extends acf_field {
 	
 }
 
-$config = require __DIR__ . '/config.php';
+class acf_s3_item {
 
+	/**
+	 * @var string
+	 */
+	private $bucket;
+
+	/**
+	 * @var string
+	 */
+	private $key;
+
+	/**
+	 * acf_s3_item constructor.
+	 * @param string $bucket
+	 * @param string $key
+	 */
+	function __construct($bucket, $key) {
+		$this->bucket = $bucket;
+		$this->key = $key;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getKey() {
+		return $this->key;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getBucket() {
+		return $this->bucket;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getUrl() {
+		return sprintf('https://%s.s3.amazonaws.com/%s', $this->bucket, $this->key);
+	}
+
+	public function getBasename() {
+		return basename($this->key);
+	}
+
+}
+
+function acf_s3_get_config() {
+	return require __DIR__ . '/config.php';
+}
+
+/**
+ * @param string $fieldKey
+ * @param mixed $postId
+ * @return acf_s3_item[]
+ */
+function acf_s3_get_field($fieldKey, $postId = false) {
+	$names = get_field($fieldKey, $postId, false);
+	$conf = acf_s3_get_config();
+
+	if ( !is_array($names) ) {
+		$names = [];
+	}
+
+	return array_map(function($n) use ($conf) {
+		return new acf_s3_item($conf['bucket'], $n);
+	}, $names);
+}
+
+$config = acf_s3_get_config();
 // create field
 new acf_field_s3_content($config['bucket']);

@@ -1,12 +1,37 @@
 (function($){
 
 	var config = $.extend({
-		getKey: function(file) {
-			return file.name;
-		}
-	}, window.acfs3 || {});
 
-	window.acfs3 = config;
+		/**
+		 * Base path for all queued files. Needs to end "/" if non-empty.
+		 * @param {jQuery} $elem
+		 * @returns {string}
+         */
+		getBaseKey: function($elem) {
+			return '';
+		},
+
+		/**
+		 *
+		 * @param {jQuery} $elem
+		 * @param {File} file
+         * @returns {*}
+         */
+		getKey: function($elem, file) {
+			return config.getBaseKey($elem) + file.name;
+		},
+
+		/**
+		 * Executed when a file is added to the queue.
+		 * Return false to prevent a file from being added to the queue.
+		 *
+		 * @param {jQuery} $elem
+         * @param {File} file
+		 * @returns {mixed}
+         */
+		onFileAdd: function($elem, file) {},
+
+	}, window.acfs3 || {});
 
 	function updateTemplate($target, template, data) {
 		return $target.html(template(data));
@@ -28,7 +53,8 @@
 
 		var $templateEl = $el.find('.acf-s3-files');
 		var template = _.template($('#acf-s3-file-template').text());
-		var files = window.ACF_S3_FILES;
+		var files = $templateEl.data('files');
+
 		var postId = parseInt($templateEl.data('post-id'), 10);
 		var fieldKey = $el.data('field_key');
 
@@ -84,8 +110,16 @@
 			var $this = $(event.target);
 			var file = $this[0].files[0];
 
+			// remove the file from the "Add file" button
+			jQuery(this).val(null);
+
+			// run the onFileAdd callback
+			if ( false === config.onFileAdd($el, file) ) {
+				return;
+			}
+
 			files.push({
-				name: config.getKey(file),
+				name: config.getKey($el, file),
 				uploaded: false,
 				file: file
 			});
@@ -108,12 +142,15 @@
 			if ( file ) {
 				var completedParts = 0;
 				var totalParts = Math.ceil(file.size/uploader.partSize);
-				var name = config.getKey(file);
+				var name = config.getKey($el, file);
+
+				$file.find('.progress').css('width', '1%');
 
 				uploader.upload(name, file).then(function(res) {
 					item.uploaded = true;
 					render({files: files});
 
+					// update the acf data in the db
 					updateField(fieldKey, _.pluck(files, 'name'), postId);
 				}, null, function(progress) {
 					completedParts++;
