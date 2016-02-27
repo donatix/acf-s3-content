@@ -156,58 +156,6 @@ class acf_field_s3_content extends acf_field {
 
 		<input type="file" id="acf-s3-file-select" />
 
-
-		<script type="text/template" id="acf-s3-file-template">
-
-			<% if ( files.length === 0 ) { %>
-			<input type="hidden" name="<?php echo $field['name']; ?>" value="" />
-			<% } %>
-
-			<% for (var i = 0; i < files.length; i++) { %>
-
-			<div class="acf-s3-file" data-id="<%= i %>">
-
-				<div class="progress<% if (files[i].uploaded) { %> done<% } %>"></div>
-
-				<div class="content">
-
-					<input type="hidden"
-						   name="<?php echo $field['name']; ?>[<%= i %>]"
-						   value="<%= files[i].name %>" />
-
-					<div class="name">
-
-						<% if (files[i].uploaded) { %>
-
-						<a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= files[i].name %>"
-						   target="_blank">
-							<%= files[i].name %>
-						</a>
-
-						<% } else { %>
-
-						<%= files[i].name %>
-
-						<% } %>
-
-					</div>
-
-					<div class="actions">
-						<% if ( !files[i].uploaded ) { %>
-						<a class="acf-s3-upload" style="float: right;">Upload</a>
-						<% } %>
-
-						<a class="acf-s3-delete" style="float: right;">Delete</a>
-					</div>
-
-					<div class="clear"></div>
-
-				</div>
-			</div>
-
-			<% } %>
-		</script>
-
 		<?php
 
 	}
@@ -266,6 +214,52 @@ class acf_field_s3_content extends acf_field {
 	function input_admin_head()
 	{
 		// Note: This function can be removed if not used
+		?>
+
+		<script type="text/template" id="acf-s3-file-template">
+
+			<% for (var i = 0; i < files.length; i++) { %>
+
+			<div class="acf-s3-file" data-id="<%= i %>">
+
+				<div class="progress<% if (files[i].uploaded) { %> done<% } %>"></div>
+
+				<div class="content">
+
+					<div class="name">
+
+						<% if (files[i].uploaded) { %>
+
+						<a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= files[i].name %>"
+						   target="_blank">
+							<%= files[i].name %>
+						</a>
+
+						<% } else { %>
+
+						<%= files[i].name %>
+
+						<% } %>
+
+					</div>
+
+					<div class="actions">
+						<% if ( !files[i].uploaded ) { %>
+						<a class="acf-s3-upload" style="float: right;">Upload</a>
+						<% } %>
+
+						<a class="acf-s3-delete" style="float: right;">Delete</a>
+					</div>
+
+					<div class="clear"></div>
+
+				</div>
+			</div>
+
+			<% } %>
+		</script>
+
+		<?php
 	}
 	
 	
