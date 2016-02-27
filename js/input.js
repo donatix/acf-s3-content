@@ -29,7 +29,16 @@
          * @param {File} file
 		 * @returns {mixed}
          */
-		onFileAdd: function($elem, file) {},
+		onFileAdd: function($elem, file) {
+
+		},
+
+		/**
+		 * @param {jQuery} $elem
+         */
+		updateBasePath: function($elem) {
+			$elem.find('.acf-s3-base-path').html(config.getBaseKey($elem));
+		}
 
 	}, window.acfs3 || {});
 
@@ -65,6 +74,7 @@
 		var render = updateTemplate.bind(null, $templateEl, template);
 
 		render({files: files});
+		config.updateBasePath($el);
 
 		var proxy = new S3Proxy(ajaxurl + '?action=acf-s3_content_action');
 		var uploader = new S3FileUploader(proxy);
@@ -91,6 +101,7 @@
 			render({files: files});
 		});
 
+		/*
 		proxy.listMultipartUploads().done(function(result) {
 
 			if ( !result.Uploads ) {
@@ -101,6 +112,7 @@
 				proxy.abortMultipartUpload(u.Key, u.UploadId);
 			});
 		});
+		*/
 
 		function logFunc(arg) {
 			console.log('Success - Key: ' + arg.Key + '; Part: ' + arg.PartNumber + '; ETag: ' + arg.ETag);

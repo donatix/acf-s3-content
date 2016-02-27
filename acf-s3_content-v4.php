@@ -146,6 +146,10 @@ class acf_field_s3_content extends acf_field {
 
 		?>
 
+		<div>Base path: <span class="acf-s3-base-path"></span></div>
+
+		<br />
+
 		<div class="acf-s3-files"
 			 data-post-id="<?php echo get_the_ID();?>"
 			 data-files="<?php echo htmlspecialchars(json_encode($files), ENT_QUOTES); ?>">
