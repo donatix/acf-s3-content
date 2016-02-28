@@ -163,8 +163,6 @@
 			var file = item.file;
 
 			if ( file ) {
-				var completedParts = 0;
-				var totalParts = Math.ceil(file.size/uploader.partSize);
 				var name = config.getKey($el, file);
 
 				$file.find('.progress').css('width', '1%');
@@ -176,10 +174,8 @@
 					// update the acf data in the db
 					updateField(fieldKey, _.pluck(files, 'name'), postId);
 				}, null, function(progress) {
-					completedParts++;
-
 					$file.find('.progress').css({
-						width: Math.round(100*completedParts/totalParts) + '%',
+						width: Math.round(100*progress.position) + '%',
 					});
 				});
 			}

@@ -45,9 +45,23 @@ S3FileUploader.prototype.upload = function(key, file) {
         // after each upload is done, push the result into the result array
         queue.afterEach = function(data) {
             completedParts.push(data);
-            deferred.notify(data);
         };
+
         var promise = queue.run();
+        var prevTime = Date.now();
+        var prevLoaded = 0;
+        promise.progress(function(event) {
+            var time = Date.now();
+            var loaded = completedParts.length * self.partSize + event.loaded;
+            deferred.notify({
+                loaded: loaded,
+                position: loaded/file.size,
+                total: file.size,
+                speed: (loaded - prevLoaded) / (time - prevTime)
+            });
+            prevTime = time;
+            prevLoaded = loaded;
+        });
 
         // after the queue is complete, complete the multi part upload
         return promise.then(function() {
@@ -74,14 +88,25 @@ S3FileUploader.prototype.uploadPart = function(part, key, uploadId, partNumber) 
     var self = this;
 
     // sign the part with the proxy
-    var promise = self.proxy.signUploadPart(key, uploadId, partNumber).then(function(result) {
+    return self.proxy.signUploadPart(key, uploadId, partNumber).then(function(result) {
+
+        var d = jQuery.Deferred();
 
         // then upload it directly to s3
-        return jQuery.ajax({
+        jQuery.ajax({
             url: result.Url,
             method: 'put',
             processData: false,
             data: part,
+            xhr: function() {
+                var xhr = new XMLHttpRequest();
+                var fn = function(event) {
+                    d.notify(event);
+                };
+                xhr.addEventListener('progress', fn);
+                xhr.upload.addEventListener('progress', fn);
+                return xhr;
+            }
         }).then(function(result, status, xhr) {
 
             // the ETag is quoted which can mess up the js/php interaction.
@@ -95,11 +120,11 @@ S3FileUploader.prototype.uploadPart = function(part, key, uploadId, partNumber) 
                 ETag: etag
             };
 
+            d.resolve(data);
+
             return data;
         });
 
+        return d.promise();
     });
-
-    return promise;
-
 };

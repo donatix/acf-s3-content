@@ -26,9 +26,11 @@ PromiseQueue.prototype.runFrom = function(idx, deferred) {
     }
     var self = this;
     var item = this.funcs[idx];
-    item().done(function(result) {
+    item().then(function(result) {
         self.afterEach(result);
         self.runFrom(idx + 1, deferred);
+    }, null, function(progress) {
+        deferred.notify(progress);
     });
     return false;
 };
