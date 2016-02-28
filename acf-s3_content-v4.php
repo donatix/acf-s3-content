@@ -146,7 +146,14 @@ class acf_field_s3_content extends acf_field {
 
 		?>
 
-		<div>Base path: <span class="acf-s3-base-path"></span></div>
+		<div class="clearfix">
+			<div style="float: left;">
+				Base key: <span class="acf-s3-base-key"></span>
+			</div>
+			<div style="float:right;">
+				<button class="button acf-s3-relink">Relink</button>
+			</div>
+		</div>
 
 		<br />
 
