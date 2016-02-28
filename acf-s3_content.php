@@ -33,9 +33,7 @@ add_action('acf/include_field_types', 'include_field_types_s3_content');
 
 // 3. Include field type for ACF4
 function register_fields_s3_content() {
-	
 	include_once('acf-s3_content-v4.php');
-	
 }
 
 add_action('acf/register_fields', 'register_fields_s3_content');
@@ -58,4 +56,15 @@ add_action('wp_ajax_acf-s3_update_field', function() {
 	update_field($key, $value, $postId);
 
 	die();
+});
+
+add_action('wp_ajax_acf-s3_relink', function() {
+
+	$key = $_POST['key'];
+	$postId = $_POST['post_id'];
+	$path = $_POST['base_key'];
+
+	var_dump([$key, $postId, $path]);
+	die();
+
 });
