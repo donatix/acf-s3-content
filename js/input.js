@@ -59,6 +59,7 @@
 		return jQuery.ajax({
 			method: 'POST',
 			url: ajaxurl + '?action=acf-s3_relink',
+			dataType: 'json',
 			data: {
 				key: key,
 				post_id: postId,
@@ -211,9 +212,20 @@
 
 		$el.on('click', '.acf-s3-relink', function(event) {
 			event.preventDefault();
+
+			var $this = jQuery(this);
+			$this.prop('disabled', true);
+
 			var bk = config.getBaseKey($el);
 
-			relink(fieldKey, postId, bk).then(console.log.bind(console));
+			relink(fieldKey, postId, bk).then(function(res) {
+				var tmpFiles = res.map(function(f) {
+					return { name: f, uploaded: true };
+				});
+				files = tmpFiles;
+				render({ files: files });
+				$this.prop('disabled', false);
+			});
 		});
 
 	}

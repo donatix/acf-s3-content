@@ -34,8 +34,10 @@ return [
         $model = $client->completeMultipartUpload([
             'Bucket' => $config['bucket'],
             'Key' => $_POST['Key'],
-            'Parts' => $_POST['Parts'],
-            'UploadId' => $_POST['UploadId']
+            'MultipartUpload' => [
+                'Parts' => $_POST['Parts'],
+            ],
+            'UploadId' => $_POST['UploadId'],
         ]);
 
         return $model->toArray();
@@ -58,8 +60,10 @@ return [
             'UploadId' => $_POST['UploadId'],
         ]);
 
+        $url = (string) $client->createPresignedRequest($command, '+10 minutes')->getUri();
+
         return [
-            'Url' => $command->createPresignedUrl('+10 minutes')
+            'Url' => $url,
         ];
     },
 

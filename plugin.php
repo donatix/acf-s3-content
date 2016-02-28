@@ -34,10 +34,13 @@ add_action('acf/include_field_types', 'include_field_types_s3_content');
  * @return S3Client
  */
 function acf_s3_get_client($config) {
-	return S3Client::factory([
-		'key' => $config['key'],
-		'secret' => $config['secret'],
-		'region' => $config['region']
+	return new S3Client([
+		'credentials' => [
+			'key' => $config['key'],
+			'secret' => $config['secret'],
+		],
+		'region' => $config['region'],
+		'version' => 'latest',
 	]);
 }
 
@@ -61,6 +64,30 @@ function acf_s3_get_field($fieldKey, $postId = false) {
 	return array_map(function($n) use ($conf) {
 		return new acf_s3_item($conf['bucket'], $n);
 	}, $names);
+}
+
+/**
+ * Scans a location in S3 and updates the linked files in a post
+ *
+ * @param string $fieldKey acf field key
+ * @param int $postId post id to link to
+ * @param string $baseKey base key to scan in s3
+ * @return string[] keys to the linked files
+ */
+function acf_s3_relink($fieldKey, $postId, $baseKey) {
+	$config = acf_s3_get_config();
+	$s3 = acf_s3_get_client($config);
+	$data = $s3->listObjects([
+		'Bucket' => $config['bucket'],
+		'Prefix' => $baseKey,
+	])->toArray();
+
+	$contents = isset($data['Contents']) ? $data['Contents'] : [];
+	$items = array_map(function($it) { return $it['Key']; }, $contents);
+
+	update_field($fieldKey, $items, $postId);
+
+	return $items;
 }
 
 add_action('acf/register_fields', function() {
@@ -99,8 +126,11 @@ add_action('wp_ajax_acf-s3_relink', function() {
 	$key = $_POST['key'];
 	$postId = $_POST['post_id'];
 	$path = $_POST['base_key'];
-	var_dump([$key, $postId, $path]);
-	die();
 
+	$items = acf_s3_relink($key, $postId, $path);
+
+	echo json_encode($items);
+
+	die();
 });
 
