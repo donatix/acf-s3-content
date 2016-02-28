@@ -33,13 +33,6 @@
 
 		},
 
-		/**
-		 * @param {jQuery} $elem
-         */
-		updateBasePath: function($elem) {
-			$elem.find('.acf-s3-base-path').html(config.getBaseKey($elem));
-		}
-
 	}, window.acfs3 || {});
 
 	function updateTemplate($target, template, data) {
@@ -47,13 +40,29 @@
 	}
 
 	function updateField(key, value, postId) {
-		jQuery.ajax({
+		return jQuery.ajax({
 			method: 'post',
 			url: ajaxurl + '?action=acf-s3_update_field',
 			data: {
 				key: key,
 				value: value,
 				post_id: postId,
+			},
+		});
+	}
+
+	function updateBaseKey($el) {
+		$el.find('.acf-s3-base-key').html(config.getBaseKey($el));
+	}
+
+	function relink(key, postId, baseKey) {
+		return jQuery.ajax({
+			method: 'POST',
+			url: ajaxurl + '?action=acf-s3_relink',
+			data: {
+				key: key,
+				post_id: postId,
+				base_key: baseKey,
 			},
 		});
 	}
@@ -74,7 +83,8 @@
 		var render = updateTemplate.bind(null, $templateEl, template);
 
 		render({files: files});
-		config.updateBasePath($el);
+		$el.on('update.basekey', updateBaseKey.bind(null, $el));
+		$el.trigger('update.basekey');
 
 		var proxy = new S3Proxy(ajaxurl + '?action=acf-s3_content_action');
 		var uploader = new S3FileUploader(proxy);
@@ -197,6 +207,13 @@
 
 				updateField(fieldKey, _.pluck(files, 'name'), postId);
 			});
+		});
+
+		$el.on('click', '.acf-s3-relink', function(event) {
+			event.preventDefault();
+			var bk = config.getBaseKey($el);
+
+			relink(fieldKey, postId, bk).then(console.log.bind(console));
 		});
 
 	}

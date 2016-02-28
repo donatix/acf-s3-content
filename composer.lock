@@ -4,20 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "4b91ee5e14570ee0a1d1162869e9eeee",
+    "hash": "419362b1d9362b33d47ccaadb6a0dbe6",
+    "content-hash": "5b5a3fa15687c5ec884c69cb069014c0",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
-            "version": "2.8.22",
+            "version": "2.8.27",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "d24eb9c69e5b6bdab53a7e223e58507bbea842dd"
+                "reference": "c1605360b6624958a5397601ad5543cd45fcf8f7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/d24eb9c69e5b6bdab53a7e223e58507bbea842dd",
-                "reference": "d24eb9c69e5b6bdab53a7e223e58507bbea842dd",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/c1605360b6624958a5397601ad5543cd45fcf8f7",
+                "reference": "c1605360b6624958a5397601ad5543cd45fcf8f7",
                 "shasum": ""
             },
             "require": {
@@ -67,7 +68,7 @@
                 "s3",
                 "sdk"
             ],
-            "time": "2015-10-15 21:08:01"
+            "time": "2016-01-30 00:53:32"
         },
         {
             "name": "guzzle/guzzle",
@@ -166,16 +167,16 @@
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v2.7.5",
+            "version": "v2.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher.git",
-                "reference": "ae4dcc2a8d3de98bd794167a3ccda1311597c5d9"
+                "reference": "ee278f7c851533e58ca307f66305ccb9188aceda"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/ae4dcc2a8d3de98bd794167a3ccda1311597c5d9",
-                "reference": "ae4dcc2a8d3de98bd794167a3ccda1311597c5d9",
+                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/ee278f7c851533e58ca307f66305ccb9188aceda",
+                "reference": "ee278f7c851533e58ca307f66305ccb9188aceda",
                 "shasum": ""
             },
             "require": {
@@ -183,11 +184,10 @@
             },
             "require-dev": {
                 "psr/log": "~1.0",
-                "symfony/config": "~2.0,>=2.0.5",
-                "symfony/dependency-injection": "~2.6",
-                "symfony/expression-language": "~2.6",
-                "symfony/phpunit-bridge": "~2.7",
-                "symfony/stopwatch": "~2.3"
+                "symfony/config": "~2.0,>=2.0.5|~3.0.0",
+                "symfony/dependency-injection": "~2.6|~3.0.0",
+                "symfony/expression-language": "~2.6|~3.0.0",
+                "symfony/stopwatch": "~2.3|~3.0.0"
             },
             "suggest": {
                 "symfony/dependency-injection": "",
@@ -196,13 +196,16 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.7-dev"
+                    "dev-master": "2.8-dev"
                 }
             },
             "autoload": {
                 "psr-4": {
                     "Symfony\\Component\\EventDispatcher\\": ""
-                }
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -220,7 +223,7 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "https://symfony.com",
-            "time": "2015-09-22 13:49:29"
+            "time": "2016-01-13 10:28:07"
         }
     ],
     "packages-dev": [],
