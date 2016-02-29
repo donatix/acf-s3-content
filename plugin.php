@@ -90,6 +90,11 @@ function acf_s3_relink($fieldKey, $postId, $baseKey) {
 	$contents = array_filter($contents, function($it) use ($baseKey) {
 		return $it['Key'] !== $baseKey;
 	});
+
+	// if elements have been removed by the filter there might be holes in the array.
+	// this can cause json_encode to return an object instead of an array.
+	$contents = array_values($contents);
+	
 	$items = array_map(function($it) { return $it['Key']; }, $contents);
 
 	update_field($fieldKey, $items, $postId);
