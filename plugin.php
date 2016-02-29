@@ -77,12 +77,19 @@ function acf_s3_get_field($fieldKey, $postId = false) {
 function acf_s3_relink($fieldKey, $postId, $baseKey) {
 	$config = acf_s3_get_config();
 	$s3 = acf_s3_get_client($config);
+	$baseKey = trim($baseKey, '/') . '/';
 	$data = $s3->listObjects([
 		'Bucket' => $config['bucket'],
 		'Prefix' => $baseKey,
 	])->toArray();
 
 	$contents = isset($data['Contents']) ? $data['Contents'] : [];
+
+	// if directories have been created manually on S3, empty "ghost files" will
+	// appear with the same key as the base key. Remove them.
+	$contents = array_filter($contents, function($it) use ($baseKey) {
+		return $it['Key'] !== $baseKey;
+	});
 	$items = array_map(function($it) { return $it['Key']; }, $contents);
 
 	update_field($fieldKey, $items, $postId);
