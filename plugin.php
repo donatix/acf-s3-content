@@ -103,6 +103,11 @@ function acf_s3_relink($fieldKey, $postId, $baseKey) {
 	return $items;
 }
 
+function getJsonBody() {
+	$data = file_get_contents('php://input');
+	return json_decode($data, true);
+}
+
 add_action('acf/register_fields', function() {
 	$config = acf_s3_get_config();
 	new acf_field_s3_content($config['bucket']);
@@ -112,11 +117,6 @@ add_action('wp_ajax_acf-s3_content_action', function() {
 	$config = acf_s3_get_config();
 	$client = acf_s3_get_client($config);
 	$action = isset($_GET['command']) ? $_GET['command'] : '';
-
-	function getJsonBody() {
-		$data = file_get_contents('php://input');
-		return json_decode($data, true);
-	}
 	$proxy = new Proxy($client, $config['bucket']);
 	$body = getJsonBody();
 	$out = [];
@@ -149,17 +149,19 @@ add_action('wp_ajax_acf-s3_content_action', function() {
 });
 
 add_action('wp_ajax_acf-s3_update_field', function() {
-	$key = $_POST['key'];
-	$value = $_POST['value'];
-	$postId = $_POST['post_id'];
+	$body = getJsonBody();
+	$key = $body['key'];
+	$value = $body['value'];
+	$postId = $body['post_id'];
 	update_field($key, $value, $postId);
 	die();
 });
 
 add_action('wp_ajax_acf-s3_relink', function() {
-	$key = $_POST['key'];
-	$postId = $_POST['post_id'];
-	$path = $_POST['base_key'];
+	$body = getJsonBody();
+	$key = $body['key'];
+	$postId = $body['post_id'];
+	$path = $body['base_key'];
 
 	$items = acf_s3_relink($key, $postId, $path);
 

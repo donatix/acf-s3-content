@@ -43,11 +43,14 @@
 		return jQuery.ajax({
 			method: 'post',
 			url: ajaxurl + '?action=acf-s3_update_field',
-			data: {
+			dataType: 'json',
+			contentType: 'application/json; charset=UTF-8',
+			processData: false,
+			data: JSON.stringify({
 				key: key,
 				value: value,
-				post_id: postId,
-			},
+				post_id: postId
+			}),
 		});
 	}
 
@@ -65,7 +68,7 @@
 			data: JSON.stringify({
 				key: key,
 				post_id: postId,
-				base_key: baseKey,
+				base_key: baseKey
 			}),
 		});
 	}
