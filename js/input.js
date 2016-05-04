@@ -60,11 +60,13 @@
 			method: 'POST',
 			url: ajaxurl + '?action=acf-s3_relink',
 			dataType: 'json',
-			data: {
+			contentType: 'application/json; charset=UTF-8',
+			processData: false,
+			data: JSON.stringify({
 				key: key,
 				post_id: postId,
 				base_key: baseKey,
-			},
+			}),
 		});
 	}
 	
@@ -87,7 +89,11 @@
 		$el.on('update.basekey', updateBaseKey.bind(null, $el));
 		$el.trigger('update.basekey');
 
-		var proxy = new S3Proxy(ajaxurl + '?action=acf-s3_content_action');
+		var proxy = new S3Proxy(ajaxurl);
+		proxy.buildUrl = function(action) {
+			return proxy.proxyUrl + '?action=acf-s3_content_action&command=' + action
+		};
+
 		var uploader = new S3FileUploader(proxy);
 
 		// make sure all files are uploaded before we submit the form
@@ -126,7 +132,7 @@
 		*/
 
 		function logFunc(arg) {
-			console.log('Success - Key: ' + arg.Key + '; Part: ' + arg.PartNumber + '; ETag: ' + arg.ETag);
+			console.log(arg);
 		}
 
 		$el.on('change', 'input[type=file]', function(event) {

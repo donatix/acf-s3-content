@@ -1,13 +1,19 @@
 {
-    "name": "helmut/acf-s3-content",
+    "name": "helmutschneider/acf-s3-content",
     "authors": [
         {
             "name": "Johan Björk",
             "email": "johanimon@gmail.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/helmutschneider/s3-js-upload.git"
+        }
+    ],
     "require": {
-        "aws/aws-sdk-php": "~3.0"
+        "helmutschneider/s3-js-upload": "dev-master"
     },
     "autoload": {
         "classmap": ["class/"]

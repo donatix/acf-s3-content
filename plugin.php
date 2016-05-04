@@ -3,7 +3,7 @@
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 1.0.0
+Version: 1.1.0
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
@@ -11,6 +11,7 @@ Author URI: mailto:johanimon@gmail.com
 require __DIR__ . '/vendor/autoload.php';
 
 use Aws\S3\S3Client;
+use HelmutSchneider\AmazonS3\Proxy;
 
 // 1. set text domain
 // Reference: https://codex.wordpress.org/Function_Reference/load_plugin_textdomain
@@ -110,18 +111,39 @@ add_action('acf/register_fields', function() {
 add_action('wp_ajax_acf-s3_content_action', function() {
 	$config = acf_s3_get_config();
 	$client = acf_s3_get_client($config);
-	$actions = require __DIR__ . '/actions.php';
 	$action = isset($_GET['command']) ? $_GET['command'] : '';
 
-	/* @var callable $callback */
-	$callback = null;
-	if ( isset($actions[$action]) ) {
-		$callback = $actions[$action];
+	function getJsonBody() {
+		$data = file_get_contents('php://input');
+		return json_decode($data, true);
+	}
+	$proxy = new Proxy($client, $config['bucket']);
+	$body = getJsonBody();
+	$out = [];
+	switch ($action) {
+		case 'createMultipartUpload':
+			$out = $proxy->createMultipartUpload($body['Key'], $body['ContentType']);
+			break;
+		case 'abortMultipartUpload':
+			$out = $proxy->abortMultipartUpload($body['Key'], $body['UploadId']);
+			break;
+		case 'completeMultipartUpload':
+			$out = $proxy->completeMultipartUpload($body['Key'], $body['Parts'], $body['UploadId']);
+			break;
+		case 'listMultipartUploads':
+			$out = $proxy->listMultipartUploads();
+			break;
+		case 'signUploadPart':
+			$out = $proxy->signUploadPart($body['Key'], $body['PartNumber'], $body['UploadId']);
+			break;
+		case 'deleteObject':
+			$out = $proxy->deleteObject($body['Key']);
+			break;
+		default:
+			throw new Exception('No matching action found');
 	}
 
-	$result = $callback ? $callback($client, $config) : [ 'Message' => 'No action found' ];
-
-	echo json_encode($result);
+	echo json_encode($out);
 
 	die();
 });
