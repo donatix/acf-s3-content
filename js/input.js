@@ -1,5 +1,39 @@
 (function($){
 
+	// remove unsafe characters
+	// see http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html#object-key-guidelines
+	function purify(name) {
+		return ("" + name)
+
+			// these might cause problems
+			.replace(/&/g, '')
+			.replace(/$/g, '')
+			.replace(/@/g, '')
+			.replace(/=/g, '')
+			.replace(/;/g, '')
+			.replace(/:/g, '')
+			.replace(/\+/g, '')
+			.replace(/,/g, '')
+			.replace(/\?/g, '')
+
+			// these should be avoided
+			.replace(/\\/g, '')
+			.replace(/\{/g, '')
+			.replace(/^/g, '')
+			.replace(/\}/g, '')
+			.replace(/%/g, '')
+			.replace(/`/g, '')
+			.replace(/\]/g, '')
+			.replace(/'/g, '')
+			.replace(/"/g, '')
+			.replace(/>/g, '')
+			.replace(/\[/g, '')
+			.replace(/~/g, '')
+			.replace(/</g, '')
+			.replace(/#/g, '')
+			.replace(/\|/g, '');
+	}
+
 	var config = $.extend({
 
 		/**
@@ -18,7 +52,7 @@
          * @returns {*}
          */
 		getKey: function($elem, file) {
-			return config.getBaseKey($elem) + file.name;
+			return purify(config.getBaseKey($elem) + file.name);
 		},
 
 		/**
@@ -55,7 +89,7 @@
 	}
 
 	function updateBaseKey($el) {
-		$el.find('.acf-s3-base-key').html(config.getBaseKey($el));
+		$el.find('.acf-s3-base-key').html(purify(config.getBaseKey($el)));
 	}
 
 	function relink(key, postId, baseKey) {

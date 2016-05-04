@@ -246,7 +246,7 @@ class acf_field_s3_content extends acf_field {
 
                         <% if (files[i].uploaded) { %>
 
-                        <a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= files[i].name %>"
+                        <a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= encodeURI(files[i].name) %>"
                            target="_blank">
                             <%= files[i].name %>
                         </a>
