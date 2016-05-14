@@ -3,35 +3,35 @@
 	// remove unsafe characters
 	// see http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html#object-key-guidelines
 	function purify(name) {
-		return ("" + name)
+		return ('' + name)
 
 			// these might cause problems
-			.replace(/&/g, '')
-			.replace(/$/g, '')
-			.replace(/@/g, '')
-			.replace(/=/g, '')
-			.replace(/;/g, '')
-			.replace(/:/g, '')
-			.replace(/\+/g, '')
-			.replace(/,/g, '')
-			.replace(/\?/g, '')
+			.replace('&', '')
+			.replace('$', '')
+			.replace('@', '')
+			.replace('=', '')
+			.replace(';', '')
+			.replace(':', '')
+			.replace('+', '')
+			.replace(',', '')
+			.replace('?', '')
 
 			// these should be avoided
-			.replace(/\\/g, '')
-			.replace(/\{/g, '')
-			.replace(/^/g, '')
-			.replace(/\}/g, '')
-			.replace(/%/g, '')
-			.replace(/`/g, '')
-			.replace(/\]/g, '')
-			.replace(/'/g, '')
-			.replace(/"/g, '')
-			.replace(/>/g, '')
-			.replace(/\[/g, '')
-			.replace(/~/g, '')
-			.replace(/</g, '')
-			.replace(/#/g, '')
-			.replace(/\|/g, '');
+			.replace('\\', '')
+			.replace('{', '')
+			.replace('^', '')
+			.replace('}', '')
+			.replace('%', '')
+			.replace('`', '')
+			.replace(']', '')
+			.replace('\'', '')
+			.replace('"', '')
+			.replace('>', '')
+			.replace('[', '')
+			.replace('~', '')
+			.replace('<', '')
+			.replace('#', '')
+			.replace('|', '');
 	}
 
 	var config = $.extend({
