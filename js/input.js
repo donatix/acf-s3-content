@@ -2,7 +2,7 @@
 
 	// remove unsafe characters
 	// see http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html#object-key-guidelines
-	function purify(name) {
+	function sanitize(name) {
 		return ('' + name)
 
 			// these might cause problems
@@ -52,7 +52,7 @@
          * @returns {*}
          */
 		getKey: function($elem, file) {
-			return purify(config.getBaseKey($elem) + file.name);
+			return sanitize(config.getBaseKey($elem) + file.name);
 		},
 
 		/**
@@ -89,7 +89,7 @@
 	}
 
 	function updateBaseKey($el) {
-		$el.find('.acf-s3-base-key').html(purify(config.getBaseKey($el)));
+		$el.find('.acf-s3-base-key').html(sanitize(config.getBaseKey($el)));
 	}
 
 	function relink(key, postId, baseKey) {
