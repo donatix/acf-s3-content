@@ -255,7 +255,7 @@
 			var $this = jQuery(this);
 			$this.prop('disabled', true);
 
-			var bk = config.getBaseKey($el);
+			var bk = sanitize(config.getBaseKey($el));
 
 			relink(fieldKey, postId, bk).then(function(res) {
 				var tmpFiles = res.map(function(f) {
