@@ -54,7 +54,7 @@ class acf_field_s3_content extends acf_field {
         $this->settings = array(
             'path' => apply_filters('acf/helpers/get_path', realpath(__DIR__ . '/../plugin.php')),
             'dir' => apply_filters('acf/helpers/get_dir', realpath(__DIR__ . '/../plugin.php')),
-            'version' => '1.1.0',
+            'version' => '1.2.0',
         );
     }
 

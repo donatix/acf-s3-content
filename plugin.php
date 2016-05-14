@@ -3,7 +3,7 @@
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 1.1.0
+Version: 1.2.0
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
