@@ -78,7 +78,9 @@ function acf_s3_get_field($fieldKey, $postId = false) {
 function acf_s3_relink($fieldKey, $postId, $baseKey) {
 	$config = acf_s3_get_config();
 	$s3 = acf_s3_get_client($config);
-	$baseKey = trim($baseKey, '/') . '/';
+
+	// make sure the key only ends with a slash if we're not at the root
+	$baseKey = ltrim(trim($baseKey, '/') . '/', '/');
 	$data = $s3->listObjects([
 		'Bucket' => $config['bucket'],
 		'Prefix' => $baseKey,
