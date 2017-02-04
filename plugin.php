@@ -46,7 +46,12 @@ function acf_s3_get_client($config) {
 }
 
 function acf_s3_get_config() {
-	return require __DIR__ . '/config.php';
+    /* @var array|null $config */
+    static $config = null;
+    if ($config === null) {
+        $config = require __DIR__ . '/config.php';
+    }
+	return $config;
 }
 
 /**
