@@ -6,7 +6,7 @@
  * Time: 20:08
  */
 
-class acf_field_s3_content extends acf_field {
+class acf_field_s3_content_v4 extends acf_field {
 
     // vars
     var $settings, // will hold info such as dir / path
@@ -14,9 +14,9 @@ class acf_field_s3_content extends acf_field {
 
 
     /**
-     * @var string
+     * @var acf_field_s3_content_shared
      */
-    private $bucket;
+    private $shared;
 
     /*
     *  __construct
@@ -33,7 +33,7 @@ class acf_field_s3_content extends acf_field {
     function __construct($bucket)
     {
 
-        $this->bucket = $bucket;
+        $this->shared = new acf_field_s3_content_shared($bucket);
 
         // vars
         $this->name = 's3_content';
@@ -54,7 +54,7 @@ class acf_field_s3_content extends acf_field {
         $this->settings = array(
             'path' => apply_filters('acf/helpers/get_path', realpath(__DIR__ . '/../plugin.php')),
             'dir' => apply_filters('acf/helpers/get_dir', realpath(__DIR__ . '/../plugin.php')),
-            'version' => '1.2.0',
+            'version' => '1.3.0',
         );
     }
 
@@ -74,45 +74,6 @@ class acf_field_s3_content extends acf_field {
 
     function create_options( $field )
     {
-        // defaults?
-        /*
-        $field = array_merge($this->defaults, $field);
-        */
-
-        // key is needed in the field names to correctly save the data
-        $key = $field['name'];
-
-
-        // Create Field Options HTML
-        ?>
-        <tr class="field_option field_option_<?php echo $this->name; ?>">
-            <td class="label">
-                <label><?php _e("Preview Size",'acf'); ?></label>
-                <p class="description"><?php _e("Thumbnail is advised",'acf'); ?></p>
-            </td>
-            <td>
-
-                <?php
-
-                /*
-                do_action('acf/create_field', array(
-                    'type'		=>	'radio',
-                    'name'		=>	'fields['.$key.'][preview_size]',
-                    'value'		=> false,
-                    //'value'		=>	$field['preview_size'],
-                    'layout'	=>	'horizontal',
-                    'choices'	=>	array(
-                        'thumbnail' => __('Thumbnail'),
-                        'something_else' => __('Something Else'),
-                    )
-                ));
-                */
-
-                ?>
-            </td>
-        </tr>
-        <?php
-
     }
 
 
@@ -130,50 +91,7 @@ class acf_field_s3_content extends acf_field {
 
     function create_field( $field )
     {
-        // defaults?
-        /*
-        $field = array_merge($this->defaults, $field);
-        */
-
-        // perhaps use $field['preview_size'] to alter the markup?
-
-
-        // create Field HTML
-
-        $values = is_array($field['value']) ? $field['value'] : [];
-
-        $files = array_map(function($name) {
-            return ['name' => $name, 'uploaded' => true];
-        }, $values);
-
-        // reset array keys
-        $files = array_values($files);
-
-        ?>
-
-        <div class="clearfix">
-            <div style="float: left;">
-                Base key: <span class="acf-s3-base-key"></span>
-            </div>
-            <div style="float:right;">
-                <button class="button acf-s3-relink">Relink</button>
-            </div>
-        </div>
-
-        <br />
-
-        <div class="acf-s3-files"
-             data-post-id="<?php echo get_the_ID();?>"
-             data-files="<?php echo htmlspecialchars(json_encode($files), ENT_QUOTES); ?>">
-
-        </div>
-
-        <br />
-
-        <input type="file" id="acf-s3-file-select" />
-
-        <?php
-
+        $this->shared->renderField($field);
     }
 
 
@@ -191,27 +109,7 @@ class acf_field_s3_content extends acf_field {
 
     function input_admin_enqueue_scripts()
     {
-        // Note: This function can be removed if not used
-
-        // register ACF scripts
-        wp_register_script( 'promise-queue', $this->settings['dir'] . 'vendor/helmutschneider/s3-js-upload/src/js/PromiseQueue.js', array('jquery'), $this->settings['version'] );
-        wp_register_script( 's3-proxy', $this->settings['dir'] . 'vendor/helmutschneider/s3-js-upload/src/js/S3Proxy.js', array('jquery'), $this->settings['version'] );
-        wp_register_script( 's3-file-uploader', $this->settings['dir'] . 'vendor/helmutschneider/s3-js-upload/src/js/S3FileUploader.js', array('jquery', 's3-proxy', 'promise-queue'), $this->settings['version'] );
-        wp_register_script( 'acf-s3_content', $this->settings['dir'] . 'js/input.js', array('acf-input', 's3-file-uploader', 'underscore'), $this->settings['version'], true );
-
-        wp_register_style( 'acf-s3_content', $this->settings['dir'] . 'css/input.css' );
-
-        // scripts
-        wp_enqueue_script(array(
-            'acf-s3_content',
-        ));
-
-        // styles
-        wp_enqueue_style(array(
-            'acf-s3_content',
-        ));
-
-
+        $this->shared->enqueueAssets();
     }
 
 
@@ -229,53 +127,7 @@ class acf_field_s3_content extends acf_field {
 
     function input_admin_head()
     {
-        // Note: This function can be removed if not used
-        ?>
-
-        <script type="text/template" id="acf-s3-file-template">
-
-            <% for (var i = 0; i < files.length; i++) { %>
-
-            <div class="acf-s3-file" data-id="<%= i %>">
-
-                <div class="progress<% if (files[i].uploaded) { %> done<% } %>"></div>
-
-                <div class="content">
-
-                    <div class="name">
-
-                        <% if (files[i].uploaded) { %>
-
-                        <a href="https://<?php echo $this->bucket; ?>.s3.amazonaws.com/<%= encodeURI(files[i].name) %>"
-                           target="_blank">
-                            <%= files[i].name %>
-                        </a>
-
-                        <% } else { %>
-
-                        <%= files[i].name %>
-
-                        <% } %>
-
-                    </div>
-
-                    <div class="actions">
-                        <% if ( !files[i].uploaded ) { %>
-                        <a class="acf-s3-upload" style="float: right;">Upload</a>
-                        <% } %>
-
-                        <a class="acf-s3-delete" style="float: right;">Delete</a>
-                    </div>
-
-                    <div class="clear"></div>
-
-                </div>
-            </div>
-
-            <% } %>
-        </script>
-
-        <?php
+        $this->shared->renderAdminHead();
     }
 
 

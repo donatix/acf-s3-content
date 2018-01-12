@@ -114,7 +114,7 @@
 		var files = $templateEl.data('files');
 
 		var postId = parseInt($templateEl.data('post-id'), 10);
-		var fieldKey = $el.data('field_key');
+		var fieldKey = $el.data('key') || $el.data('field_key');
 
 		if ( !$.isArray(files) ) {
 			files = [];

@@ -3,7 +3,7 @@
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 1.2.0
+Version: 1.3.0
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
@@ -122,9 +122,16 @@ function getJsonBody()
     return json_decode($data, true);
 }
 
+// v4
 add_action('acf/register_fields', function () {
     $config = acf_s3_get_config();
-    new acf_field_s3_content($config['bucket']);
+    new acf_field_s3_content_v4($config['bucket']);
+});
+
+// v5
+add_action('acf/include_fields', function () {
+    $config = acf_s3_get_config();
+    new acf_field_s3_content_v5($config['bucket']);
 });
 
 add_action('wp_ajax_acf-s3_content_action', function () {
