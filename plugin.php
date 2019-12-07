@@ -252,8 +252,8 @@ add_shortcode('s3_playlist', function ($attr) {
         'style' => 'light',
         'tracklist' => true,
         'tracknumbers' => true,
-        'images' => true,
-        'artists' => true,
+        'images' => false,
+        'artists' => false,
         // we default to the configured bucket.
         // the user can override it if they want.
         'bucket' => $config['acf_s3_bucket'],
