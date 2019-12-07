@@ -1,13 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: johan
- * Date: 16-02-28
- * Time: 20:07
- */
+declare(strict_types=1);
 
-class acf_s3_item {
+namespace HelmutSchneider\AcfS3;
 
+class S3Item
+{
     /**
      * @var string
      */
@@ -23,7 +20,8 @@ class acf_s3_item {
      * @param string $bucket
      * @param string $key
      */
-    function __construct($bucket, $key) {
+    function __construct(string $bucket, string $key)
+    {
         $this->bucket = $bucket;
         $this->key = $key;
     }
@@ -31,26 +29,32 @@ class acf_s3_item {
     /**
      * @return string
      */
-    public function getKey() {
+    public function getKey(): string
+    {
         return $this->key;
     }
 
     /**
      * @return string
      */
-    public function getBucket() {
+    public function getBucket(): string
+    {
         return $this->bucket;
     }
 
     /**
      * @return string
      */
-    public function getUrl() {
+    public function getUrl()
+    {
         return sprintf('https://%s.s3.amazonaws.com/%s', $this->bucket, $this->key);
     }
 
-    public function getBasename() {
+    /**
+     * @return string
+     */
+    public function getBasename(): string
+    {
         return basename($this->key);
     }
-
 }

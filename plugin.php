@@ -1,40 +1,27 @@
 <?php
+declare(strict_types=1);
 
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 1.3.0
+Version: 2.0.0
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
-
 require __DIR__ . '/vendor/autoload.php';
 
 use Aws\S3\S3Client;
-use HelmutSchneider\AmazonS3\Proxy;
+use HelmutSchneider\AcfS3\S3Proxy;
+use HelmutSchneider\AcfS3\S3Item;
+use HelmutSchneider\AcfS3\S3Field;
 
-// 1. set text domain
-// Reference: https://codex.wordpress.org/Function_Reference/load_plugin_textdomain
 load_plugin_textdomain('acf-s3_content', false, dirname(plugin_basename(__FILE__)) . '/lang/');
-
-// 2. Include field type for ACF5
-// $version = 5 and can be ignored until ACF6 exists
-
-/*
-function include_field_types_s3_content( $version ) {
-
-	include_once('acf-s3_content-v5.php');
-
-}
-
-add_action('acf/include_field_types', 'include_field_types_s3_content');
-*/
 
 /**
  * @param string[] $config
  * @return S3Client
  */
-function acf_s3_get_client($config)
+function acf_s3_get_client(array $config)
 {
     return new S3Client([
         'credentials' => [
@@ -46,7 +33,10 @@ function acf_s3_get_client($config)
     ]);
 }
 
-function acf_s3_get_config()
+/**
+ * @return string[]
+ */
+function acf_s3_get_config(): array
 {
     /* @var array|null $config */
     static $config = null;
@@ -58,10 +48,10 @@ function acf_s3_get_config()
 
 /**
  * @param string $fieldKey
- * @param mixed $postId
- * @return acf_s3_item[]
+ * @param int $postId
+ * @return S3Item[]
  */
-function acf_s3_get_field($fieldKey, $postId = false)
+function acf_s3_get_field(string $fieldKey, int $postId)
 {
     $names = get_field($fieldKey, $postId, false);
     $conf = acf_s3_get_config();
@@ -71,7 +61,7 @@ function acf_s3_get_field($fieldKey, $postId = false)
     }
 
     return array_map(function ($n) use ($conf) {
-        return new acf_s3_item($conf['bucket'], $n);
+        return new S3Item($conf['bucket'], $n);
     }, $names);
 }
 
@@ -83,7 +73,7 @@ function acf_s3_get_field($fieldKey, $postId = false)
  * @param string $baseKey base key to scan in s3
  * @return string[] keys to the linked files
  */
-function acf_s3_relink($fieldKey, $postId, $baseKey)
+function acf_s3_relink(string $fieldKey, int $postId, string $baseKey): array
 {
     $config = acf_s3_get_config();
     $s3 = acf_s3_get_client($config);
@@ -116,29 +106,26 @@ function acf_s3_relink($fieldKey, $postId, $baseKey)
     return $items;
 }
 
+/**
+ * @return mixed
+ */
 function getJsonBody()
 {
     $data = file_get_contents('php://input');
     return json_decode($data, true);
 }
 
-// v4
-add_action('acf/register_fields', function () {
-    $config = acf_s3_get_config();
-    new acf_field_s3_content_v4($config['bucket']);
-});
-
 // v5
 add_action('acf/include_fields', function () {
     $config = acf_s3_get_config();
-    new acf_field_s3_content_v5($config['bucket']);
+    new S3Field($config['bucket']);
 });
 
 add_action('wp_ajax_acf-s3_content_action', function () {
     $config = acf_s3_get_config();
     $client = acf_s3_get_client($config);
     $action = isset($_GET['command']) ? $_GET['command'] : '';
-    $proxy = new Proxy($client, $config['bucket']);
+    $proxy = new S3Proxy($client, $config['bucket']);
     $body = getJsonBody();
     $out = [];
     switch ($action) {
@@ -190,4 +177,3 @@ add_action('wp_ajax_acf-s3_relink', function () {
 
     die();
 });
-

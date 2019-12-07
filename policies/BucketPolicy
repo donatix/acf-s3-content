@@ -1,0 +1,20 @@
+{
+	"Version": "2012-10-17",
+	"Id": "Policy1430605759958",
+	"Statement": [
+		{
+			"Sid": "Stmt1430605729888",
+			"Effect": "Allow",
+			"Principal": "*",
+			"Action": "s3:GetObject",
+			"Resource": "arn:aws:s3:::MY_BUCKET/*"
+		},
+		{
+			"Sid": "Stmt1430605756804",
+			"Effect": "Allow",
+			"Principal": "*",
+			"Action": "s3:ListBucket",
+			"Resource": "arn:aws:s3:::MY_BUCKET"
+		}
+	]
+}

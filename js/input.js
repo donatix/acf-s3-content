@@ -1,4 +1,4 @@
-(function ($) {
+(($) => {
 
     // remove unsafe characters
     // see http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html#object-key-guidelines
@@ -39,13 +39,13 @@
             .replace('|', '');
     }
 
-    var config = $.extend({
+    const config = Object.assign({
         /**
          * Base path for all queued files. Needs to end "/" if non-empty.
          * @param {jQuery} $elem
          * @returns {string}
          */
-        getBaseKey: function ($elem) {
+        getBaseKey($elem) {
             return '';
         },
 
@@ -55,7 +55,7 @@
          * @param {File} file
          * @returns {string}
          */
-        getKey: function ($elem, file) {
+        getKey($elem, file) {
             return sanitize(config.getBaseKey($elem) + file.name);
         },
 
@@ -67,7 +67,7 @@
          * @param {File} file
          * @returns {boolean}
          */
-        onFileAdd: function ($elem, file) {
+        onFileAdd($elem, file) {
         },
     }, window.acfs3 || {});
 
@@ -97,13 +97,13 @@
             data: JSON.stringify({
                 key: key,
                 value: value,
-                post_id: postId
+                post_id: postId,
             }),
         });
     }
 
     /**
-     * @param {jQuer} $el
+     * @param {jQuery} $el
      * @returns {void}
      */
     function updateBaseKey($el) {
@@ -126,7 +126,7 @@
             data: JSON.stringify({
                 key: key,
                 post_id: postId,
-                base_key: baseKey
+                base_key: baseKey,
             }),
         });
     }
@@ -136,35 +136,33 @@
      * @returns {void}
      */
     function initialize_field($el) {
-
-        var $templateEl = $el.find('.acf-s3-files');
-        var template = _.template($('#acf-s3-file-template').text());
-        var files = $templateEl.data('files');
-
-        var postId = parseInt($templateEl.data('post-id'), 10);
-        var fieldKey = $el.data('key') || $el.data('field_key');
+        const $templateEl = $el.find('.acf-s3-files');
+        const template = _.template($('#acf-s3-file-template').text());
+        let files = $templateEl.data('files');
+        const postId = parseInt($templateEl.data('post-id'), 10);
+        const fieldKey = $el.data('key') || $el.data('field_key');
 
         if (!$.isArray(files)) {
             files = [];
         }
 
-        var render = updateTemplate.bind(null, $templateEl, template);
+        const render = updateTemplate.bind(null, $templateEl, template);
 
         render({files: files});
         $el.on('update.basekey', updateBaseKey.bind(null, $el));
         $el.trigger('update.basekey');
 
-        var proxy = new S3Proxy(ajaxurl);
-        proxy.buildUrl = function (action) {
+        const proxy = new S3Proxy(ajaxurl);
+        proxy.buildUrl = (action) => {
             return proxy.proxyUrl + '?action=acf-s3_content_action&command=' + action
         };
 
-        var uploader = new S3FileUploader(proxy);
+        const uploader = new S3FileUploader(proxy);
 
         // make sure all files are uploaded before we submit the form
-        $('form[name=post]').on('submit', function (event) {
+        $('form[name=post]').on('submit', (event) => {
 
-            var filesAreUploaded = files.every(function (it) {
+            const filesAreUploaded = files.every((it) => {
                 return it.uploaded;
             });
 
@@ -176,7 +174,7 @@
             }
 
             // remove non-uploaded media
-            files = files.filter(function (it) {
+            files = files.filter((it) => {
                 return it.uploaded;
             });
 
@@ -196,12 +194,12 @@
         });
         */
 
-        $el.on('change', 'input[type=file]', function (event) {
-            var $this = $(event.target);
-            var file = $this[0].files[0];
+        $el.on('change', 'input[type=file]', (event) => {
+            const $this = $(event.target);
+            const file = $this[0].files[0];
 
             // remove the file from the "Add file" button
-            $(this).val(null);
+            $this.val(null);
 
             // run the onFileAdd callback
             if (false === config.onFileAdd($el, file)) {
@@ -217,30 +215,27 @@
             render({files: files});
         });
 
-        $el.on('click', '.acf-s3-upload', function (event) {
-            var $this = $(event.target);
+        $el.on('click', '.acf-s3-upload', (event) => {
+            const $this = $(event.target);
             $this.html('Uploading...');
             $this.prop('disabled', true);
-            var $file = $this.closest('.acf-s3-file');
-
-            var id = $file.data('id');
-            id = parseInt(id, 10);
-
-            var item = files[id];
-            var file = item.file;
+            const $file = $this.closest('.acf-s3-file');
+            const id = parseInt($file.data('id'));
+            const item = files[id];
+            const file = item.file;
 
             if (file) {
-                var name = config.getKey($el, file);
+                const name = config.getKey($el, file);
 
                 $file.find('.progress').css('width', '1%');
 
-                uploader.upload(name, file).then(function (res) {
+                uploader.upload(name, file).then((res) => {
                     item.uploaded = true;
                     render({files: files});
 
                     // update the acf data in the db
                     updateField(fieldKey, _.pluck(files, 'name'), postId);
-                }, null, function (progress) {
+                }, null, (progress) => {
                     $file.find('.progress').css({
                         width: Math.round(100 * progress.position) + '%',
                     });
@@ -248,24 +243,22 @@
             }
         });
 
-        $el.on('click', '.acf-s3-delete', function (event) {
+        $el.on('click', '.acf-s3-delete', (event) => {
             event.preventDefault(); // this is a link without target, so disable it
 
             if (!confirm('Are you sure?')) {
                 return;
             }
 
-            var $this = $(event.target);
+            const $this = $(event.target);
 
             $this.html('Deleting...');
             $this.prop('disabled', true);
 
-            var id = $this.closest('.acf-s3-file').data('id');
-            id = parseInt(id, 10);
+            const id = parseInt($this.closest('.acf-s3-file').data('id'));
+            const item = files[id];
 
-            var item = files[id];
-
-            proxy.deleteObject(item.name).then(function (res) {
+            proxy.deleteObject(item.name).then((res) => {
                 files.splice(id, 1);
                 render({files: files});
 
@@ -273,16 +266,16 @@
             });
         });
 
-        $el.on('click', '.acf-s3-relink', function (event) {
+        $el.on('click', '.acf-s3-relink', (event) => {
             event.preventDefault();
 
-            var $this = $(this);
+            const $this = $(event.target);
             $this.prop('disabled', true);
 
-            var bk = sanitize(config.getBaseKey($el));
+            const bk = sanitize(config.getBaseKey($el));
 
-            relink(fieldKey, postId, bk).then(function (res) {
-                var tmpFiles = res.map(function (f) {
+            relink(fieldKey, postId, bk).then((res) => {
+                const tmpFiles = res.map((f) => {
                     return {name: f, uploaded: true};
                 });
                 files = tmpFiles;
@@ -309,9 +302,9 @@
         *  @return	n/a
         */
 
-        acf.add_action('ready append', function ($el) {
+        acf.add_action('ready append', ($el) => {
             // search $el for fields of type 'FIELD_NAME'
-            acf.get_fields({type: 's3_content'}, $el).each(function () {
+            acf.get_fields({type: 's3_content'}, $el).each(function() {
                 initialize_field($(this));
             });
         });

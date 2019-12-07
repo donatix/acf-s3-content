@@ -6,16 +6,18 @@
             "email": "johanimon@gmail.com"
         }
     ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/helmutschneider/s3-js-upload.git"
-        }
-    ],
     "require": {
-        "helmutschneider/s3-js-upload": "dev-master"
+        "php": ">=7.3.0",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "aws/aws-sdk-php": "~3.0"
+    },
+    "config": {
+        "sort-packages": true
     },
     "autoload": {
-        "classmap": ["class/"]
+        "psr-4": {
+            "HelmutSchneider\\AcfS3\\": "class/"
+        }
     }
 }
