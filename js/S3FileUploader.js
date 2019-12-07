@@ -43,7 +43,15 @@ class S3FileUploader {
             let prevLoaded = 0;
             promise.progress((event) => {
                 const time = Date.now();
-                const loaded = completedParts.length * this.partSize + event.loaded;
+
+                // currently we do not notify the promise after
+                // a whole chunk completes. this results in weird
+                // progress bar behavior because sometimes the next
+                // XHR event occurs before the chunk as been pushed
+                // to completedParts. The Math.max() invocation
+                // makes sure the progress doesn't move backwards.
+                const loaded = Math.max(prevLoaded, completedParts.length * this.partSize + event.loaded);
+
                 deferred.notify({
                     loaded: loaded,
                     position: loaded / file.size,
