@@ -17,6 +17,13 @@ use HelmutSchneider\AcfS3\S3Field;
 
 load_plugin_textdomain('acf-s3_content', false, dirname(plugin_basename(__FILE__)) . '/lang/');
 
+const ACF_S3_OPTIONS = [
+    'acf_s3_region' => 'S3 Region',
+    'acf_s3_bucket' => 'S3 Bucket',
+    'acf_s3_key' => 'S3 Access Key',
+    'acf_s3_secret' => 'S3 Access Secret',
+];
+
 /**
  * @param string[] $config
  * @return S3Client
@@ -25,10 +32,10 @@ function acf_s3_get_client(array $config)
 {
     return new S3Client([
         'credentials' => [
-            'key' => $config['key'],
-            'secret' => $config['secret'],
+            'key' => $config['acf_s3_key'],
+            'secret' => $config['acf_s3_secret'],
         ],
-        'region' => $config['region'],
+        'region' => $config['acf_s3_region'],
         'version' => 'latest',
     ]);
 }
@@ -41,7 +48,10 @@ function acf_s3_get_config(): array
     /* @var array|null $config */
     static $config = null;
     if ($config === null) {
-        $config = require __DIR__ . '/config.php';
+        $config = [];
+        foreach (ACF_S3_OPTIONS as $key => $name) {
+            $config[$key] = get_option($key, '');
+        }
     }
     return $config;
 }
@@ -61,7 +71,7 @@ function acf_s3_get_field(string $fieldKey, int $postId)
     }
 
     return array_map(function ($n) use ($conf) {
-        return new S3Item($conf['bucket'], $n);
+        return new S3Item($conf['acf_s3_bucket'], $n);
     }, $names);
 }
 
@@ -81,7 +91,7 @@ function acf_s3_relink(string $fieldKey, int $postId, string $baseKey): array
     // make sure the key only ends with a slash if we're not at the root
     $baseKey = ltrim(trim($baseKey, '/') . '/', '/');
     $data = $s3->listObjects([
-        'Bucket' => $config['bucket'],
+        'Bucket' => $config['acf_s3_bucket'],
         'Prefix' => $baseKey,
     ])->toArray();
 
@@ -118,14 +128,14 @@ function getJsonBody()
 // v5
 add_action('acf/include_fields', function () {
     $config = acf_s3_get_config();
-    new S3Field($config['bucket']);
+    new S3Field($config['acf_s3_bucket']);
 });
 
 add_action('wp_ajax_acf-s3_content_action', function () {
     $config = acf_s3_get_config();
     $client = acf_s3_get_client($config);
     $action = isset($_GET['command']) ? $_GET['command'] : '';
-    $proxy = new S3Proxy($client, $config['bucket']);
+    $proxy = new S3Proxy($client, $config['acf_s3_bucket']);
     $body = getJsonBody();
     $out = [];
     switch ($action) {
@@ -176,4 +186,48 @@ add_action('wp_ajax_acf-s3_relink', function () {
     echo json_encode($items);
 
     die();
+});
+
+/**
+ * @param array $args
+ * @return void
+ */
+function create_input(array $args): void
+{
+    $template = <<<EOD
+<input class="regular-text"
+       type="%s"
+       id="%s"
+       name="%s"
+       value="%s" />
+EOD;
+    echo sprintf(
+        $template,
+        $args['type'] ?? 'text',
+        $args['name'],
+        $args['name'],
+        $args['value']
+    );
+}
+
+add_action('admin_init', function () {
+    $group = 'acf_s3_content';
+    $fields = ACF_S3_OPTIONS;
+
+    // remove api token when deactivating plugin
+    register_deactivation_hook(__FILE__, function () use ($fields) {
+        foreach ($fields as $key => $name) {
+            delete_option($key);
+        }
+    });
+
+    add_settings_section($group, 'ACF S3 Content', '', 'general');
+
+    foreach ($fields as $key => $name) {
+        add_settings_field($key, $name, 'create_input', 'general', $group, [
+            'name' => $key,
+            'value' => get_option($key)
+        ]);
+        register_setting('general', $key);
+    }
 });
