@@ -232,6 +232,8 @@ add_action('admin_init', function () {
     }
 });
 
+// this is a vastly simplified version of the native
+// "playlist" shortcode. it only supports audio files.
 add_shortcode('s3_playlist', function ($attr) {
     global $content_width;
     $post = get_post();
@@ -239,72 +241,69 @@ add_shortcode('s3_playlist', function ($attr) {
     static $instance = 0;
     $instance++;
 
-    $attr['orderby'] = 'post__in';
-    $attr['include'] = $attr['ids'];
-
-    $atts = shortcode_atts(
-        array(
-            'type' => 'audio',
-            'order' => 'ASC',
-            'orderby' => 'menu_order ID',
-            'id' => $post ? $post->ID : 0,
-            'include' => '',
-            'exclude' => '',
-            'style' => 'light',
-            'tracklist' => true,
-            'tracknumbers' => true,
-            'images' => true,
-            'artists' => true,
-        ),
-        $attr,
-        'playlist'
-    );
-
-    $args = array(
-        'post_status' => 'inherit',
-        'post_type' => 'attachment',
-        'post_mime_type' => 'audio',
+    $config = acf_s3_get_config();
+    $atts = shortcode_atts([
+        'type' => 'audio',
         'order' => 'ASC',
-        'orderby' => 'post__in',
-        'include' => $attr['ids'],
-    );
-
-    $_attachments = get_posts($args);
-
-    $attachments = array();
-    foreach ($_attachments as $key => $val) {
-        $attachments[$val->ID] = $_attachments[$key];
-    }
+        'orderby' => 'menu_order ID',
+        'id' => $post ? $post->ID : 0,
+        'include' => '',
+        'exclude' => '',
+        'style' => 'light',
+        'tracklist' => true,
+        'tracknumbers' => true,
+        'images' => true,
+        'artists' => true,
+        // we default to the configured bucket.
+        // the user can override it if they want.
+        'bucket' => $config['acf_s3_bucket'],
+        'key' => '',
+    ], $attr, 'playlist');
 
     $outer = 22; // default padding and border of wrapper
-
     $default_width = 640;
     $theme_width = empty($content_width)
         ? $default_width
         : ($content_width - $outer);
 
     $data = [
-        'type' => $atts['type'],
-        'tracklist' => true,
-        'tracknumbers' => true,
-        'images' => false,
-        'artists' => true,
+        'type' => 'audio',
+        'tracklist' => wp_validate_boolean($atts['tracklist']),
+        'tracknumbers' => wp_validate_boolean($atts['tracknumbers']),
+        'images' => wp_validate_boolean($atts['images']),
+        'artists' => wp_validate_boolean($atts['artists']),
     ];
 
+    $client = acf_s3_get_client($config);
+    $proxy = new S3Proxy($client, $atts['bucket']);
+    $result = $proxy->listObjects([
+        'Prefix' => $atts['key'],
+    ]);
+
+    $contents = $result['Contents'];
     $tracks = [];
-    foreach ($attachments as $attachment) {
-        $url = wp_get_attachment_url($attachment->ID);
+    foreach ($contents as $item) {
+        $key = $item['Key'];
+
+        // require the matched keys to have some kind
+        // of file ending. this is mostly used to remove
+        // directories from the result.
+        if (preg_match('/\.(\w+)$/', $key) === 0) {
+            continue;
+        }
+
+        $url = $proxy->getObjectUrl($item['Key']);
         $ftype = wp_check_filetype($url, wp_get_mime_types());
-        $track = array(
+        $tracks[] = [
             'src' => $url,
             'type' => $ftype['type'],
-            'title' => $attachment->post_title,
-            'caption' => $attachment->post_excerpt,
-            'description' => $attachment->post_content,
-        );
 
-        $track['meta'] = array();
-        $tracks[] = $track;
+            // the key is an absolute path from the root
+            // so let's use basename to remove some
+            // extraneous characters.
+            'title' => basename($item['Key']),
+            'meta' => [],
+        ];
     }
     $data['tracks'] = $tracks;
 
@@ -320,6 +319,7 @@ add_shortcode('s3_playlist', function ($attr) {
         </audio>
         <script type="application/json" class="wp-playlist-script">
             <?php echo wp_json_encode($data); ?>
+
         </script>
     </div>
     <?php

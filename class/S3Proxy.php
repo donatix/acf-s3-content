@@ -125,4 +125,24 @@ class S3Proxy
         ]);
         return $model->toArray();
     }
+
+    /**
+     * @param array $options
+     * @return array
+     */
+    public function listObjects(array $options = []): array
+    {
+        return $this->client->listObjectsV2(array_merge($options, [
+            'Bucket' => $this->bucket,
+        ]))->toArray();
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    public function getObjectUrl(string $key): string
+    {
+        return $this->client->getObjectUrl($this->bucket, $key);
+    }
 }
