@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 2.0.0
+Version: 2.0.1
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
@@ -58,10 +58,10 @@ function acf_s3_get_config(): array
 
 /**
  * @param string $fieldKey
- * @param int $postId
+ * @param int|false $postId defaulted to false to preserve backwards compatibility with ACF get_field()
  * @return S3Item[]
  */
-function acf_s3_get_field(string $fieldKey, int $postId)
+function acf_s3_get_field(string $fieldKey, $postId = false)
 {
     $names = get_field($fieldKey, $postId, false);
     $conf = acf_s3_get_config();
