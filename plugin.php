@@ -233,13 +233,19 @@ add_action('admin_init', function () {
 });
 
 // this is a vastly simplified version of the native
-// "playlist" shortcode. it only supports audio files.
+// "playlist" shortcode.
 add_shortcode('s3_playlist', function ($attr) {
     global $content_width;
     $post = get_post();
 
     static $instance = 0;
     $instance++;
+
+    $output = apply_filters('post_playlist', '', $attr, $instance);
+
+    if (!empty($output)) {
+        return $output;
+    }
 
     $config = acf_s3_get_config();
     $atts = shortcode_atts([
@@ -252,22 +258,28 @@ add_shortcode('s3_playlist', function ($attr) {
         'style' => 'light',
         'tracklist' => true,
         'tracknumbers' => true,
-        'images' => false,
-        'artists' => false,
+        'images' => true,
+        'artists' => true,
         // we default to the configured bucket.
         // the user can override it if they want.
         'bucket' => $config['acf_s3_bucket'],
-        'key' => '',
     ], $attr, 'playlist');
 
     $outer = 22; // default padding and border of wrapper
+
     $default_width = 640;
+    $default_height = 360;
+
     $theme_width = empty($content_width)
         ? $default_width
         : ($content_width - $outer);
+    $theme_height = empty($content_width)
+        ? $default_height
+        : round(($default_height * $theme_width) / $default_width);
 
     $data = [
-        'type' => 'audio',
+        'type' => $atts['type'],
+        // don't pass strings to JSON, will be truthy in JS
         'tracklist' => wp_validate_boolean($atts['tracklist']),
         'tracknumbers' => wp_validate_boolean($atts['tracknumbers']),
         'images' => wp_validate_boolean($atts['images']),
@@ -280,7 +292,7 @@ add_shortcode('s3_playlist', function ($attr) {
         'Prefix' => $atts['key'],
     ]);
 
-    $contents = $result['Contents'];
+    $contents = $result['Contents'] ?? [];
     $tracks = [];
     foreach ($contents as $item) {
         $key = $item['Key'];
@@ -294,7 +306,7 @@ add_shortcode('s3_playlist', function ($attr) {
 
         $url = $proxy->getObjectUrl($item['Key']);
         $ftype = wp_check_filetype($url, wp_get_mime_types());
-        $tracks[] = [
+        $track = [
             'src' => $url,
             'type' => $ftype['type'],
 
@@ -303,24 +315,59 @@ add_shortcode('s3_playlist', function ($attr) {
             // extraneous characters.
             'title' => basename($item['Key']),
             'meta' => [],
+            'dimensions' => [
+                'original' => [
+                    'width' => $default_width,
+                    'height' => $default_height,
+                ],
+                'resized' => [
+                    'width' => $theme_width,
+                    'height' => $theme_height,
+                ],
+            ],
         ];
+
+        // if we detect a video file we must set
+        // the global player attributes to "video"
+        // so wordpress will render the player
+        // correctly.
+        if (strpos($ftype['type'], 'video') === 0) {
+            $atts['type'] = 'video';
+            $data['type'] = 'video';
+        }
+
+        $tracks[] = $track;
     }
     $data['tracks'] = $tracks;
 
+    $safe_type = esc_attr($atts['type']);
     $safe_style = esc_attr($atts['style']);
 
     ob_start();
+
     if (1 === $instance) {
         do_action('wp_playlist_scripts', $atts['type'], $atts['style']);
     }
     ?>
-    <div class="wp-playlist wp-audio-playlist wp-playlist-<?php echo $safe_style; ?>">
-        <audio controls="controls" preload="none" width="<?= (int)$theme_width; ?>">
-        </audio>
-        <script type="application/json" class="wp-playlist-script">
-            <?php echo wp_json_encode($data); ?>
-
-        </script>
+    <div class="wp-playlist wp-<?php echo $safe_type; ?>-playlist wp-playlist-<?php echo $safe_style; ?>">
+        <?php if ('audio' === $atts['type']) : ?>
+            <div class="wp-playlist-current-item"></div>
+        <?php endif ?>
+        <<?php echo $safe_type; ?> controls="controls" preload="none" width="
+        <?php
+        echo (int)$theme_width;
+        ?>
+        "
+        <?php
+        if ('video' === $safe_type) :
+            echo ' height="', (int)$theme_height, '"';
+        endif;
+        ?>
+        >
+    </<?php echo $safe_type; ?>>
+    <div class="wp-playlist-next"></div>
+    <div class="wp-playlist-prev"></div>
+    <script type="application/json" class="wp-playlist-script"><?php echo wp_json_encode($data); ?></script>
     </div>
     <?php
     return ob_get_clean();
