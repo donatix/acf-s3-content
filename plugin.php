@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 2.0.1
+Version: 2.1.0
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
@@ -304,7 +304,7 @@ add_shortcode('s3_playlist', function ($attr) {
             continue;
         }
 
-        $url = $proxy->getObjectUrl($item['Key']);
+        $url = apply_filters('s3_playlist_url', $proxy->getObjectUrl($item['Key']));
         $ftype = wp_check_filetype($url, wp_get_mime_types());
         $track = [
             'src' => $url,
