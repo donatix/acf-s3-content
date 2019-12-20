@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 2.1.0
+Version: 2.1.1
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
@@ -263,6 +263,7 @@ add_shortcode('s3_playlist', function ($attr) {
         // we default to the configured bucket.
         // the user can override it if they want.
         'bucket' => $config['acf_s3_bucket'],
+        'key' => '',
     ], $attr, 'playlist');
 
     $outer = 22; // default padding and border of wrapper
