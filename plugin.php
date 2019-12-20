@@ -4,7 +4,7 @@ declare(strict_types=1);
 /*
 Plugin Name: ACF: S3 Content
 Description: Adds a new field type that allows media to be uploaded to AWS S3
-Version: 2.1.1
+Version: 2.2.0
 Author: Johan Björk
 Author URI: mailto:johanimon@gmail.com
 */
@@ -278,14 +278,17 @@ add_shortcode('s3_playlist', function ($attr) {
         ? $default_height
         : round(($default_height * $theme_width) / $default_width);
 
-    $data = [
+    // forwards shortcode attributes to the frontend
+    // so the consumer of this plugin can display the
+    // data however they please.
+    $data = array_merge($attr, [
         'type' => $atts['type'],
         // don't pass strings to JSON, will be truthy in JS
         'tracklist' => wp_validate_boolean($atts['tracklist']),
         'tracknumbers' => wp_validate_boolean($atts['tracknumbers']),
         'images' => wp_validate_boolean($atts['images']),
         'artists' => wp_validate_boolean($atts['artists']),
-    ];
+    ]);
 
     $client = acf_s3_get_client($config);
     $proxy = new S3Proxy($client, $atts['bucket']);
