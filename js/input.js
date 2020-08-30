@@ -39,6 +39,12 @@
             .replace('|', '');
     }
 
+    function generateName() {
+
+        return Date.now();
+    }
+    const generatedName = generateName()
+
     const config = Object.assign({
         /**
          * Base path for all queued files. Needs to end "/" if non-empty.
@@ -56,7 +62,8 @@
          * @returns {string}
          */
         getKey($elem, file) {
-            return sanitize(config.getBaseKey($elem) + file.name);
+            return generatedName +'.'+file.name.substring(file.name.lastIndexOf('.')+1)
+            // return sanitize(config.getBaseKey($elem) + file.name);
         },
 
         /**
