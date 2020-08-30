@@ -39,11 +39,7 @@
             .replace('|', '');
     }
 
-    function generateName() {
-
-        return Date.now();
-    }
-    const generatedName = generateName()
+    let directory = Date.now()
 
     const config = Object.assign({
         /**
@@ -62,8 +58,7 @@
          * @returns {string}
          */
         getKey($elem, file) {
-            return generatedName +'.'+file.name.substring(file.name.lastIndexOf('.')+1)
-            // return sanitize(config.getBaseKey($elem) + file.name);
+            return directory+'/'+sanitize(config.getBaseKey($elem) + file.name);
         },
 
         /**

@@ -22,6 +22,7 @@ const ACF_S3_OPTIONS = [
     'acf_s3_bucket' => 'S3 Bucket',
     'acf_s3_key' => 'S3 Access Key',
     'acf_s3_secret' => 'S3 Access Secret',
+    'public_path' => 'Cloud Front Path',
 ];
 
 /**
