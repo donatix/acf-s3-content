@@ -21,6 +21,7 @@ class S3Proxy {
      * @returns {jQuery.Deferred}
      */
     createMultipartUpload(key, contentType) {
+        console.log('ContentType: ' + contentType)
         return jQuery.ajax({
             url: this.buildUrl('createMultipartUpload'),
             method: 'post',
@@ -94,18 +95,22 @@ class S3Proxy {
      * @returns {jQuery.Deferred}
      */
     signUploadPart(key, uploadId, partNumber) {
+        const data = {
+            Key: key,
+            UploadId: uploadId,
+            PartNumber: partNumber,
+        }
+
+        console.log(data)
+
         return jQuery.ajax({
             url: this.buildUrl('signUploadPart'),
             method: 'post',
             dataType: 'json',
             contentType: 'application/json; charset=UTF-8',
             processData: false,
-            data: JSON.stringify({
-                Key: key,
-                UploadId: uploadId,
-                PartNumber: partNumber,
-            }),
-        });
+            data: JSON.stringify(data),
+        })
     }
 
     /**

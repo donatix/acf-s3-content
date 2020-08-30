@@ -131,8 +131,45 @@ add_action('acf/include_fields', function () {
     new S3Field($config['acf_s3_bucket']);
 });
 
-add_action('wp_ajax_acf-s3_content_action', function () {
-    $config = acf_s3_get_config();
+
+function wp_ajax_acf_s3_content_action() {
+    //$config = acf_s3_get_config();
+    $config = ACF_S3_OPTIONS;
+    $client = acf_s3_get_client($config);
+    $action = isset($_GET['command']) ? $_GET['command'] : '';
+    $proxy = new S3Proxy($client, $config['acf_s3_bucket']);
+    $body = getJsonBody();
+    $out = [];
+
+    switch ($action) {
+        case 'createMultipartUpload':
+            $out = $proxy->createMultipartUpload($body['Key'], $body['ContentType']);
+            break;
+        case 'abortMultipartUpload':
+            $out = $proxy->abortMultipartUpload($body['Key'], $body['UploadId']);
+            break;
+        case 'completeMultipartUpload':
+            $out = $proxy->completeMultipartUpload($body['Key'], $body['Parts'], $body['UploadId']);
+            break;
+        case 'listMultipartUploads':
+            $out = $proxy->listMultipartUploads();
+            break;
+        case 'signUploadPart':
+            $out = $proxy->signUploadPart($body['Key'], $body['PartNumber'], $body['UploadId']);
+            break;
+        case 'deleteObject':
+            $out = $proxy->deleteObject($body['Key']);
+            break;
+        default:
+            throw new Exception('No matching action found');
+    }
+
+    echo json_encode($out);
+
+    die();
+}
+add_action('wp_ajax_acf_s3_content_action', function () {
+    $config = ACF_S3_OPTIONS;
     $client = acf_s3_get_client($config);
     $action = isset($_GET['command']) ? $_GET['command'] : '';
     $proxy = new S3Proxy($client, $config['acf_s3_bucket']);

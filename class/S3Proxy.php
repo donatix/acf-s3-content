@@ -21,6 +21,8 @@ class S3Proxy
      */
     private $bucket;
 
+    private $acl = 'public-read';
+
     /**
      * Proxy constructor.
      * @param S3Client $client
@@ -43,6 +45,7 @@ class S3Proxy
             'Bucket' => $this->bucket,
             'Key' => $key,
             'ContentType' => $contentType,
+            'ACL' => $this->acl,
         ]);
         return $model->toArray();
     }

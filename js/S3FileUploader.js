@@ -20,12 +20,13 @@ class S3FileUploader {
         const deferred = jQuery.Deferred();
 
         this.proxy.createMultipartUpload(key, file.type || 'text/plain').then((result) => {
+
             const partFunctions = [];
             for (let i = 0; i < partCount; i++) {
 
                 // extract a slice of the file
-                const part = file.slice(i * this.partSize, (i + 1) * this.partSize);
-
+                const part = file//.slice(i * this.partSize, (i + 1) * this.partSize);
+        
                 // create a function to upload the slice
                 const func = this.uploadPart.bind(this, part, result.Key, result.UploadId, i + 1);
                 partFunctions.push(func);

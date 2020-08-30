@@ -154,7 +154,7 @@
 
         const proxy = new S3Proxy(ajaxurl);
         proxy.buildUrl = (action) => {
-            return proxy.proxyUrl + '?action=acf-s3_content_action&command=' + action
+            return proxy.proxyUrl + '?action=acf_s3_content_action&command=' + action
         };
 
         const uploader = new S3FileUploader(proxy);
