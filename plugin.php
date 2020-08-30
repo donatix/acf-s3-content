@@ -133,8 +133,7 @@ add_action('acf/include_fields', function () {
 
 
 function wp_ajax_acf_s3_content_action() {
-    //$config = acf_s3_get_config();
-    $config = ACF_S3_OPTIONS;
+    $config = acf_s3_get_config();
     $client = acf_s3_get_client($config);
     $action = isset($_GET['command']) ? $_GET['command'] : '';
     $proxy = new S3Proxy($client, $config['acf_s3_bucket']);
@@ -169,7 +168,7 @@ function wp_ajax_acf_s3_content_action() {
     die();
 }
 add_action('wp_ajax_acf_s3_content_action', function () {
-    $config = ACF_S3_OPTIONS;
+    $config = acf_s3_get_config();
     $client = acf_s3_get_client($config);
     $action = isset($_GET['command']) ? $_GET['command'] : '';
     $proxy = new S3Proxy($client, $config['acf_s3_bucket']);
